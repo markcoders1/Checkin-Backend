@@ -11,12 +11,12 @@ import mongoose from "mongoose";
 const registerUser = asyncHandler(async (req, res) => {
     // algorithm:
     //step 1: get user details from frontend
-    //step 2: validation karni hogi, check user ne username empty to nahi de dya etc
+    //step 2: check if username is empty 
     //step 3: check if user already exists in database : email should be unique
 
     //step 6: create user object - create entry in db
     //step 7: user banane k baad response ayega us response se password hata do password show ni karana,
-    //remove password and refresh token field from response
+    //remove password from response
     //step 8: check response aya hai ya nahi, user create hwa ya nahi
     //step 9: if created then return response otherwise error bhejdo
 
@@ -46,25 +46,23 @@ const registerUser = asyncHandler(async (req, res) => {
         throw new ApiError(409, "Error: Email already used");
     }
 
-
-
     //6
     const user = await User.create({
         fullName,
-        email: email.toLowerCase(),
+        email: email?.toLowerCase(),
         password,
 
     });
     // checking User create hwa ya nahi, agar hwa to uski _id hogi
     //( step 7 bhi yahin hojaega id se select karke)
     const createdUser = await User.findById(user._id).select(
-        "-password -refreshToken"
+        "-password"
     );
     // 8
     if (!createdUser) {
         throw new ApiError(
             500,
-            "something went wrong while registering a user"
+            "something went wrong while registering a new user"
         );
     }
 
