@@ -4,27 +4,38 @@ import { User } from "../models/user.model.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
+import bcrypt from "bcrypt";
 
+const generateAccessAndRefreshToken = async (userId) => {
+    // call this method whenever you need to generate access and refresh token,
+    // takes userId as parameter, returns the generated AccessToken and refreshToken
 
+    try {
+        const user = await User.findById(userId); // database se is ID ka user nikalo
+        const accessToken = user.generateAccessToken();
+        const refreshToken = user.generateRefreshToken();
+
+        // User.model.js me jo refreshToken hai usme daldo generated refresh token
+        user.refreshToken = refreshToken;
+        await user.save({ validateBeforeSave: false }); // save bhi karlo changes
+        // validate before save = false because otherwise password validate hoga,
+        // required field hai user.model.js me password
+        // aur yahan hamne koi password ni diya, validate hota to error ata
+
+        return { accessToken, refreshToken };
+    } catch (error) {
+        throw new ApiError(
+            500,
+            "Something went wrong while generating Access and Refresh Tokens"
+        );
+    }
+};
 
 
 const registerUser = asyncHandler(async (req, res) => {
-    // algorithm:
-    //step 1: get user details from frontend
-    //step 2: check if username is empty 
-    //step 3: check if user already exists in database : email should be unique
-
-    //step 6: create user object - create entry in db
-    //step 7: user banane k baad response ayega us response se password hata do password show ni karana,
-    //remove password from response
-    //step 8: check response aya hai ya nahi, user create hwa ya nahi
-    //step 9: if created then return response otherwise error bhejdo
-
-    // 1
+   
     const { fullName, email,  password } = req.body;
     console.log("Email yeh agyi hai: " , email);
-
-    // 2
     if (
         // check k koi empty input to nahi agya, agar koi empty hai to error bhejo
         [fullName, email, password].some(
@@ -75,17 +86,102 @@ const registerUser = asyncHandler(async (req, res) => {
 });
 
 
+const loginUser = asyncHandler(async (req, res) => {
+    // algorithm
+    // 1. req.body se data lao
+    // 2. email hai ya nahi check
+    // 3. find the user
+    // 3.5 return error if cant find the user
+    // 4. password check
+    // 5. generate and send access and refresh token
+    // 6. send cookie
+
+    // 1.
+    const { email, password } = req.body;
+
+    // 2.
+    if (!email) {
+        throw new ApiError(400, "Email is required");
+    }
+    console.log("Email: ", email);
+
+    // 3. database me find karen dono, return jo pehle mila
+    const user = await User.findOne({
+        $or: [{ email }],
+    });
+
+    // 3.5 agar database me nahi mila matlab is username/email ka koi user database me nahi hai
+    if (!user) {
+        throw new ApiError(
+            404,
+            "Failed to login, User with this Email does not exist"
+        );
+    }
+
+    // 4
+    const isPasswordValid = await user.isPasswordCorrect(password);
+    if (!isPasswordValid) {
+        throw new ApiError(401, "Invalid Password");
+    }
+
+    // 5.
+    const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
+        user._id
+    );
+
+    // 6. cookie
+
+    const loggedInUser = await User.findById(user._id).select(
+        "-password"
+    );
+
+    // cookies bhejte waqt uske kuch options design karte parte hain (object hota hai)
+    const options = {
+        httpOnly: true,
+        secure: true,
+    };
+    return res
+        .status(200)
+        .cookie("accessToken", accessToken, options)
+        .cookie("refreshToken", refreshToken, options)
+        .json(
+            new ApiResponse(
+                200,
+                {
+                    user: loggedInUser,
+                    accessToken,
+                    refreshToken,
+                },
+                "User Logged In Successfully"
+            )
+        );
+});
+
+
+    
+
+
+const checkin = asyncHandler(async(req,res)=>{
+
+    try {
+        const user = await User.findById(req.user.id);
+        user.attendance.push({ checkIn: new Date() });
+        await user.save();
+        new ApiResponse(200, createdUser, "Checked In Succesfully") // new object
+    } catch (err) {
+        console.error(err.message);
+        throw new ApiError(
+            500,
+            "Server error, Could not check in"
+        );
+    }
+
+})
+
+
 
 export {
     registerUser,
-    // loginUser,
-    // logoutUser,
-    // refreshAccesToken,
-    // changeCurrentPassword,
-    // getCurrentUser,
-    // updateAccountDetails,
-    // updateUserAvatar,
-    // updateUserCoverImage,
-    // getUserChannelProfile,
-    // getWatchHistory,
+    loginUser,
+    checkin,
 };

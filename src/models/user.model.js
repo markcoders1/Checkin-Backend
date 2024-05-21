@@ -5,13 +5,18 @@ Complete Functionality:
 FullName:
 Email:                     //username nahi rakh rha no need
 Password:
-Usual office timings example 11AM - 8PM
+
 
 2. Controllers and routes
 1st /signup     : controller will be for registering a new user: 
-2nd /checkin    : for user login (will require registered user)
-3rd /checkout   :  (will require checked in user)
-4th /changeUser : this controller will be for editing user details such as changing password or full name or timings (will require logged in user)
+2nd /login      : for user login, will lead to home page where he can change password or checkin/checkout or log out (will require registered user)
+
+// below all controllers will require login to access
+
+3rd /logout     :  
+4th /changeUser : this controller will be for editing user details such as changing password or full name or timings 
+5th /checkin    : pressing the checkin button will trigger this
+6th /checkout   : pressing the checkout button will trigger this
 
 3. make an authenticator middleware VerifyJWT which will see if user is logged in or not and npm install jwt library
 
@@ -27,7 +32,7 @@ Future functionality:
 look into how to make it easier to Check in and check out using fingerprint or a QR Code scanner 
 
 add graphs for every user to see who's spending average 9 hours/day (excluding weekends and holidays)
-
+add usual timings of users in model maybe
 add integrate work from home scenario 
 
 */
@@ -64,10 +69,10 @@ const userSchema = new mongoose.Schema({
 },
 { timestamps: true }
 ); 
-userSchema.pre("save", async function (next) {
-    if (!this.isModified("password")) return next(); //agar modify ni hwa password to direct return
-
-    this.password = await bcrypt.hash(this.password, 10);
+userSchema.pre('save', async function(next) {
+    if (!this.isModified('password')) return next();
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
     next();
 });
 
