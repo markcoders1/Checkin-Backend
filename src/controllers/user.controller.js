@@ -182,7 +182,7 @@ const loginUser = asyncHandler(async (req, res) => {
     // 6. cookie
 
     const loggedInUser = await User.findById(user._id).select(
-        "-password"
+        "-password -refreshToken"
     );
 
     // cookies bhejte waqt uske kuch options design karte parte hain (object hota hai)
@@ -236,12 +236,15 @@ const logoutUser = asyncHandler(async (req, res) => {
 const checkinUser = asyncHandler(async(req,res)=>{
 
     try {
-        const user = await User.findById(req.user.id);
-        user.attendance.push({ checkIn: new Date() });
+        const user = await User.findById(req.user.id); //get logged in user 
+        const checkinTime = user.attendance.push({ checkIn: new Date() }); // add current time object to attendance check in
+
+        console.log(checkinTime); // remove when testing done
+
         await user.save();
         return res
         .json(
-            new ApiResponse(200, "Checked In Succesfully") 
+            new ApiResponse(200, {} ,"Checked In Succesfully") 
         )
     } catch (err) {
         console.error(err.message);
@@ -251,7 +254,48 @@ const checkinUser = asyncHandler(async(req,res)=>{
         );
     }
 
-})
+});
+
+const checkoutUser  = asyncHandler (async(req, res)=>{
+    try {
+        const user = await User.findById(req.user.id);
+
+        //user ki attendance ki details lelo
+        const attendance = user.attendance;
+
+        console.log("attendance: ", attendance); // remove when testing is done 
+
+        if (attendance.length === 0){ 
+            //no attendance records at all, means they haven't checked in.
+            throw new ApiError(
+                404,
+                "No check-in detected, check in first"
+            );
+        };
+        if (attendance[attendance.length - 1].checkOut) {
+            //user has already checked out. if this If statement if checked
+           
+            throw new ApiError(400, "Error: User has already checked-out,  Checkin First");
+        };
+
+        //adding check out time to user database
+        attendance[attendance.length - 1].checkOut = new Date();
+
+        await user.save();
+        return res
+        .json(
+            new ApiResponse(200, {} ,"Checked Out Succesfully") 
+        );
+    } catch (err) {
+        console.error(err.message);
+        throw new ApiError(
+            500,
+            "Error Checking out "
+        );
+
+    }
+
+});
 
 const changeCurrentPassword = asyncHandler(async (req, res) => {
     const { oldPassword, newPassword } = req.body;
@@ -307,6 +351,7 @@ export {
     loginUser,
     logoutUser,
     checkinUser,
+    checkoutUser,
     refreshAccesToken,
     changeCurrentPassword,
     updateAccountDetails,
