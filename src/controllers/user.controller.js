@@ -31,55 +31,74 @@ const generateAccessAndRefreshToken = async (userId) => {
     }
 };
 
-const refreshAccesToken = asyncHandler(async (req, res) => {
-    const incomingRefreshToken =
-        req.cookies.refreshToken || req.body.refreshToken;
+
+const refreshAccessToken = asyncHandler(async (req, res) => {
+    const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken
+
+    console.log("incomingRefreshToken : ");
+    console.log(incomingRefreshToken);
+
 
     if (!incomingRefreshToken) {
-        throw new ApiError(401, "Unauthorized Access( token ghalat hai apka)");
+        throw new ApiError(401, "unauthorized request")
     }
+
     try {
-        //token verify karate hain
-        const decodedToken = verify.jwt(
+        const decodedToken = jwt.verify(
             incomingRefreshToken,
             process.env.REFRESH_TOKEN_SECRET
-        );
-        const user = await User.findById(decodedToken?._id);
+        )
+
+
+
+        console.log("decodedToken : ");
+        console.log(decodedToken);
+
+
+
+        const user = await User.findById(decodedToken?._id)
+
+
+
+
+        console.log("user : ");
+        console.log(user);
+
+
+
+
         if (!user) {
-            throw new ApiError(401, "Invalid Refresh Token)");
+            throw new ApiError(401, "Error: Invalid refresh token")
         }
-
-        //incoming token jo current user bhej rha hai, aur
-        // database me jo is user ka token saved hai woh compare karte hain
-
-        if (incomingRefreshToken != user?.refreshToken) {
-            throw new ApiError(401, "Refresh token is Already Used or Expired");
+    
+        if (incomingRefreshToken !== user?.refreshToken) {
+            throw new ApiError(401, "Refresh token is expired or used")
+            
         }
-
+    
         const options = {
             httpOnly: true,
-            secure: true,
-        };
-
-        const { newRefreshToken, accessToken } =
-            await generateAccessAndRefreshToken(user._id);
-
+            secure: true
+        }
+    
+        const {accessToken, newRefreshToken} = await generateAccessAndRefereshTokens(user._id)
+    
         return res
-            .status(200)
-            .cookie("refreshToken", newRefreshToken, options)
-            .cookie("accessToken", accessToken, options)
-            .json(
-                new ApiResponse(
-                    200,
-                    { accessToken, refreshToken: newRefreshToken },
-                    "Access token refreshed"
-                )
-            );
+        .status(200)
+        .cookie("accessToken", accessToken, options)
+        .cookie("refreshToken", newRefreshToken, options)
+        .json(
+            new ApiResponse(
+                200, 
+                {accessToken, refreshToken: newRefreshToken},
+                "Access token refreshed"
+            )
+        )
     } catch (error) {
-        throw new ApiError(401, error?.message || "Invalid Refresh Token");
+        throw new ApiError(401, error?.message || "Invalid refresh token")
     }
-});
 
+})
 
 
 const registerUser = asyncHandler(async (req, res) => {
@@ -153,7 +172,7 @@ const loginUser = asyncHandler(async (req, res) => {
     if (!email) {
         throw new ApiError(400, "Email is required");
     }
-    console.log("Email: ", email);
+    console.log("logged in Email: ", email);
 
     // 3. database me find karen dono, return jo pehle mila
     const user = await User.findOne({
@@ -210,7 +229,7 @@ const loginUser = asyncHandler(async (req, res) => {
 
 const logoutUser = asyncHandler(async (req, res) => {
     await User.findByIdAndUpdate(
-        req.user._id,
+        req.user._id, // req.user will not be accessible without middleware verifyJWT
         {
             $set: {
                 refreshToken: undefined,
@@ -269,13 +288,13 @@ const checkoutUser  = asyncHandler (async(req, res)=>{
             //no attendance records at all, means they haven't checked in.
             throw new ApiError(
                 404,
-                "No check-in detected, check in first"
+                "No check-in detected, check-in first"
             );
         };
         if (attendance[attendance.length - 1].checkOut) {
-            //user has already checked out. if this If statement if checked
+            //check if user has already checked out. 
            
-            throw new ApiError(400, "Error: User has already checked-out,  Checkin First");
+            throw new ApiError(400, "Error: User has already checked-out,  Check-in First");
         };
 
         //adding check out time to user database
@@ -304,7 +323,7 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
     //login k waqt auth middleware me data gya hoga uska (req.user)
     const user = await User.findById(req.user?._id);
 
-    //hamare pas user schema mein aik method hai isPasswordCorrectBhai jo true ya falsa return karta hai
+    //hamare pas user schema mein aik method hai isPasswordCorrect jo true ya falsa return karta hai
 
     const isPasswordCorrect = await user.isPasswordCorrect(oldPassword); // save this true/false value in a variable
 
@@ -322,7 +341,7 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
 });
 
 const updateAccountDetails = asyncHandler(async (req, res) => {
-    const { fullName, email } = req.body; //images update karne ka alag controller banana advice hai
+    const { fullName, email } = req.body; 
     if (!fullName || !email) {
         throw new ApiError(400, "All fields are required");
     }
@@ -352,7 +371,7 @@ export {
     logoutUser,
     checkinUser,
     checkoutUser,
-    refreshAccesToken,
+    refreshAccessToken,
     changeCurrentPassword,
     updateAccountDetails,
 };
