@@ -1,4 +1,4 @@
-//This middleware will verify k user hai ya nahi hai
+//This middleware will verify k user logged in hai ya nahi hai
 
 import jwt from "jsonwebtoken";
 import { ApiError } from "../utils/ApiError.js";
@@ -20,9 +20,9 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
 
         const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
 
-        console.log("hi", decodedToken);
+        console.log("Decoded Token: ", decodedToken);
         const user = await User.findOne({ email: decodedToken.email }).select(
-            "-password -refreshToken"
+            "-password"
         );
 
         if (!user) {

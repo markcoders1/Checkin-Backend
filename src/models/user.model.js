@@ -8,15 +8,15 @@ Password:
 
 
 2. Controllers and routes
-1st /signup     : controller will be for registering a new user: 
-2nd /login      : for user login, will lead to home page where he can change password or checkin/checkout or log out (will require registered user)
+/signup     : controller will be for registering a new user: 
+/login      : for user login, will lead to home page where he can change password or checkin/checkout or log out (will require registered user)
 
 // below all controllers will require login to access
 
-3rd /logout     :  
-4th /changeUser : this controller will be for editing user details such as changing password or full name or timings 
-5th /checkin    : pressing the checkin button will trigger this
-6th /checkout   : pressing the checkout button will trigger this
+/logout     :  
+/changeUser : this controller will be for editing user details such as changing password or full name or timings 
+/checkin    : pressing the checkin button will trigger this
+/checkout   : pressing the checkout button will trigger this
 
 3. make an authenticator middleware VerifyJWT which will see if user is logged in or not and npm install jwt library
 
@@ -61,7 +61,9 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: [true, "Password is required"],
     },
-
+    refreshToken: {
+        type: String,
+    },
     attendance: [{
         checkIn: Date,
         checkOut: Date
@@ -84,12 +86,13 @@ userSchema.methods.isPasswordCorrect = async function (password) {
     return await bcrypt.compare(password, this.password);
 };
 
+
 userSchema.methods.generateAccessToken = function () {
+    //jwt ki documentation parho, iska sign method karta hai token generate
     return jwt.sign(
         {
             _id: this.ObjectId,
             email: this.email,
-            username: this.username,
             fullName: this.fullName,
         },
         process.env.ACCESS_TOKEN_SECRET,
@@ -98,9 +101,6 @@ userSchema.methods.generateAccessToken = function () {
         }
     );
 };
-
-
-
 userSchema.methods.generateRefreshToken = function () {
     return jwt.sign(
         {
@@ -114,9 +114,4 @@ userSchema.methods.generateRefreshToken = function () {
 };
 
 export const User = mongoose.model("User", userSchema);
-
-
-
-
-
-
+// yeh User database se direct contact kar sakta hai because it is made with mongoose.

@@ -31,7 +31,6 @@ const generateAccessAndRefreshToken = async (userId) => {
     }
 };
 
-
 const refreshAccesToken = asyncHandler(async (req, res) => {
     const incomingRefreshToken =
         req.cookies.refreshToken || req.body.refreshToken;
@@ -82,6 +81,7 @@ const refreshAccesToken = asyncHandler(async (req, res) => {
 });
 
 
+
 const registerUser = asyncHandler(async (req, res) => {
    
     const { fullName, email,  password } = req.body;
@@ -103,7 +103,7 @@ const registerUser = asyncHandler(async (req, res) => {
     });
     if (existedUser) {
         // If koi user esa exist karta hai to error bhejdo
-        console.log("existedUserWithEmail: ", existedUser);
+        console.log("existedUser: ", existedUser);
         throw new ApiError(409, "Error: Email already used");
     }
 
@@ -114,8 +114,7 @@ const registerUser = asyncHandler(async (req, res) => {
         password,
 
     });
-    // checking User create hwa ya nahi, agar hwa to uski _id hogi
-    //( step 7 bhi yahin hojaega id se select karke)
+
     const createdUser = await User.findById(user._id).select(
         "-password"
     );
@@ -134,6 +133,7 @@ const registerUser = asyncHandler(async (req, res) => {
         new ApiResponse(200, createdUser, "User registered Successfully") // new object
     );
 });
+
 
 
 const loginUser = asyncHandler(async (req, res) => {
@@ -239,7 +239,10 @@ const checkinUser = asyncHandler(async(req,res)=>{
         const user = await User.findById(req.user.id);
         user.attendance.push({ checkIn: new Date() });
         await user.save();
-        new ApiResponse(200, createdUser, "Checked In Succesfully") // new object
+        return res
+        .json(
+            new ApiResponse(200, "Checked In Succesfully") 
+        )
     } catch (err) {
         console.error(err.message);
         throw new ApiError(
