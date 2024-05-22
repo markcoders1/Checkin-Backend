@@ -11,7 +11,7 @@ dotenv.config({
 });
 
 
-
+// Database connection
 connectDB()
     .then(() => {
         app.on("Error", (error) => {

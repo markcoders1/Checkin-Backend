@@ -32,6 +32,56 @@ const generateAccessAndRefreshToken = async (userId) => {
 };
 
 
+const refreshAccesToken = asyncHandler(async (req, res) => {
+    const incomingRefreshToken =
+        req.cookies.refreshToken || req.body.refreshToken;
+
+    if (!incomingRefreshToken) {
+        throw new ApiError(401, "Unauthorized Access( token ghalat hai apka)");
+    }
+    try {
+        //token verify karate hain
+        const decodedToken = verify.jwt(
+            incomingRefreshToken,
+            process.env.REFRESH_TOKEN_SECRET
+        );
+        const user = await User.findById(decodedToken?._id);
+        if (!user) {
+            throw new ApiError(401, "Invalid Refresh Token)");
+        }
+
+        //incoming token jo current user bhej rha hai, aur
+        // database me jo is user ka token saved hai woh compare karte hain
+
+        if (incomingRefreshToken != user?.refreshToken) {
+            throw new ApiError(401, "Refresh token is Already Used or Expired");
+        }
+
+        const options = {
+            httpOnly: true,
+            secure: true,
+        };
+
+        const { newRefreshToken, accessToken } =
+            await generateAccessAndRefreshToken(user._id);
+
+        return res
+            .status(200)
+            .cookie("refreshToken", newRefreshToken, options)
+            .cookie("accessToken", accessToken, options)
+            .json(
+                new ApiResponse(
+                    200,
+                    { accessToken, refreshToken: newRefreshToken },
+                    "Access token refreshed"
+                )
+            );
+    } catch (error) {
+        throw new ApiError(401, error?.message || "Invalid Refresh Token");
+    }
+});
+
+
 const registerUser = asyncHandler(async (req, res) => {
    
     const { fullName, email,  password } = req.body;
@@ -158,10 +208,32 @@ const loginUser = asyncHandler(async (req, res) => {
 });
 
 
-    
+const logoutUser = asyncHandler(async (req, res) => {
+    await User.findByIdAndUpdate(
+        req.user._id,
+        {
+            $set: {
+                refreshToken: undefined,
+            },
+        },
+        {
+            new: true,
+        }
+    );
+    const options = {
+        httpOnly: true,
+        secure: true,
+    };
+    return res
+        .status(200)
+        .clearCookie("accessToken")
+        .clearCookie("refreshToken")
+        .json(new ApiResponse(200, {}, "User Logged Out"));
+});
 
 
-const checkin = asyncHandler(async(req,res)=>{
+
+const checkinUser = asyncHandler(async(req,res)=>{
 
     try {
         const user = await User.findById(req.user.id);
@@ -178,10 +250,61 @@ const checkin = asyncHandler(async(req,res)=>{
 
 })
 
+const changeCurrentPassword = asyncHandler(async (req, res) => {
+    const { oldPassword, newPassword } = req.body;
+
+    //pehle current user lo jo already logged in hai
+    //login k waqt auth middleware me data gya hoga uska (req.user)
+    const user = await User.findById(req.user?._id);
+
+    //hamare pas user schema mein aik method hai isPasswordCorrectBhai jo true ya falsa return karta hai
+
+    const isPasswordCorrect = await user.isPasswordCorrect(oldPassword); // save this true/false value in a variable
+
+    if (!isPasswordCorrect) {
+        throw new ApiError(400, "Old Password is not correct");
+    }
+    // if isPasswordCorrect = true to is line pe ayega
+    user.password = newPassword; // set newPassword, this only sets it and does not save it
+
+    await user.save({ validateBeforeSave: false });
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, {}, "Password changed successfully"));
+});
+
+const updateAccountDetails = asyncHandler(async (req, res) => {
+    const { fullName, email } = req.body; //images update karne ka alag controller banana advice hai
+    if (!fullName || !email) {
+        throw new ApiError(400, "All fields are required");
+    }
+
+    const user = await User.findByIdAndUpdate(
+        req.user?._id,
+        {
+            $set: {
+                fullName: fullName,
+                email: email,
+            },
+        },
+        { new: true }
+    ).select("-password");
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, user, "Account details updated successfully")
+        );
+});
 
 
 export {
     registerUser,
     loginUser,
-    checkin,
+    logoutUser,
+    checkinUser,
+    refreshAccesToken,
+    changeCurrentPassword,
+    updateAccountDetails,
 };

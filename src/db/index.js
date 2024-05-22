@@ -1,4 +1,4 @@
-import mongoose from "mongoose"; // mongoose k through databse import hoga
+import mongoose from "mongoose"; // mongoose k through database import hoga
 
 import { DB_NAME } from "../constants.js";
 
