@@ -26,6 +26,11 @@ Password:
 */
 
 /*
+feedback
+Error response is currently in HTML, make it JSON response, API response
+Time difference between check in and check out has to be calculated and saved (done)
+admin middleware separate
+only admin can sign up, user can only login and checkin/checkout
 
 Future functionality:
 
