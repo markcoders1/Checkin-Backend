@@ -6,6 +6,54 @@ import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 
+
+// a function that takes two Date() objects and 
+// and returns the value of duration between them as String (08:45:34)
+const calculateDuration = (checkInTime, checkOutTime)=>{
+
+    if (!checkInTime) {
+        throw new ApiError(404, "no check in time to calculate duration")
+    };
+    if (!checkOutTime) {
+        throw new ApiError(404, "no check out time to calculate duration")
+    };
+
+    //number of milliseconds between the date object and midnight January 1, 1970 UTC
+    // difference calculate karne k lye dono ki value numbers me chahiye so that we can subtract
+
+    const checkInTimeInMilliSeconds = checkInTime.valueOf();
+    console.log("checkInTimeInMilliSeconds: ", checkInTimeInMilliSeconds);
+
+    const checkOutTimeInMilliSeconds = checkOutTime.valueOf();
+    console.log("checkOutTimeInMilliSeconds",checkOutTimeInMilliSeconds);
+
+    //calculate their difference
+    const durationInMilliseconds = checkOutTimeInMilliSeconds - checkInTimeInMilliSeconds
+    console.log("durationInMilliseconds: ", durationInMilliseconds);
+ 
+    // convert the duration from milliseconds to Hours and Minutes string format( "08:56:01" ) 
+    // Convert milliseconds to hours, minutes, and seconds
+    const millisecondsInAnHour = 1000 * 60 * 60;
+    const millisecondsInAMinute = 1000 * 60;
+    const millisecondsInASecond = 1000;
+    
+    const totalHours = Math.floor(durationInMilliseconds / millisecondsInAnHour);
+    const totalMinutes = Math.floor((durationInMilliseconds % millisecondsInAnHour) / millisecondsInAMinute);
+    const totalSeconds = Math.floor((durationInMilliseconds % millisecondsInAMinute) / millisecondsInASecond);
+    
+    // Format hours, minutes, and seconds to be two digits
+    const hoursString = String(totalHours).padStart(2, '0');
+    const minutesString = String(totalMinutes).padStart(2, '0');
+    const secondsString = String(totalSeconds).padStart(2, '0');
+    
+    // Combine hours, minutes, and seconds into a digital clock format
+    const formattedTime = `${hoursString}:${minutesString}:${secondsString}`;
+    
+    console.log(`Formatted Duration: ${formattedTime}`);
+
+return formattedTime
+}
+
 const generateAccessAndRefreshToken = async (userId) => {
     // call this method whenever you need to generate access and refresh token,
     // takes userId as parameter, returns the generated AccessToken and refreshToken
@@ -300,6 +348,27 @@ const checkoutUser  = asyncHandler (async(req, res)=>{
         //adding check out time to user database
         attendance[attendance.length - 1].checkOut = new Date();
 
+
+        console.log("CHECKOUT TIME : ",checkoutTime); //remove this when testing is done
+
+
+        // read the checkin value from attendance so we can calculate duration
+        const checkInTime1 = attendance[attendance.length - 1].checkIn
+
+        // use function
+        const calculatedDurationLocal = calculateDuration(checkInTime1, checkoutTime)
+
+        
+
+        //now add this calculated Duration string to user 
+        if (attendance[attendance.length - 1].duration){
+            throw new ApiError(400, "Error: value detected inside duration field")
+        }
+
+        attendance[attendance.length - 1].duration = calculatedDurationLocal
+        console.log("Successfully Added Duration:  ",calculatedDurationLocal); //remove this when testing is done
+        
+        
         await user.save();
         return res
         .json(

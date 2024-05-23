@@ -66,7 +66,8 @@ const userSchema = new mongoose.Schema({
     },
     attendance: [{
         checkIn: Date,
-        checkOut: Date
+        checkOut: Date,
+        duration: String
     }]
 },
 { timestamps: true }
