@@ -275,27 +275,31 @@ const loginUser = asyncHandler(async (req, res) => {
 });
 
 
-const logoutUser = asyncHandler(async (req, res) => {
-    await User.findByIdAndUpdate(
-        req.user._id, // req.user will not be accessible without middleware verifyJWT
-        {
-            $set: {
-                refreshToken: undefined,
+const logoutUser = asyncHandler(async (req, res, next) => {
+try {
+        await User.findByIdAndUpdate(
+            req.user._id, // req.user will not be accessible without middleware verifyJWT
+            {
+                $set: {
+                    refreshToken: undefined,
+                },
             },
-        },
-        {
-            new: true,
-        }
-    );
-    const options = {
-        httpOnly: true,
-        secure: true,
-    };
-    return res
-        .status(200)
-        .clearCookie("accessToken")
-        .clearCookie("refreshToken")
-        .json(new ApiResponse(200, {}, "User Logged Out"));
+            {
+                new: true,
+            }
+        );
+        const options = {
+            httpOnly: true,
+            secure: true,
+        };
+        return res
+            .status(200)
+            .clearCookie("accessToken")
+            .clearCookie("refreshToken")
+            .json(new ApiResponse(200, {}, "User Logged Out"));
+    } catch (error) {
+        next(error);
+}
 });
 
 
