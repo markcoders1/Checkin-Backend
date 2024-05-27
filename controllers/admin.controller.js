@@ -1,4 +1,3 @@
-import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.model.js";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
@@ -9,7 +8,7 @@ export const registerUser =async (req, res) => {
     if (
       [fullName, email, password].some((field) => field?.trim() === "")
     ) {
-      throw new ApiError(400, "All fields are required");
+      throw new Error("All fields are required");
     }
   
     // 3
@@ -20,7 +19,7 @@ export const registerUser =async (req, res) => {
     if (existedUser) {
       // If koi user esa exist karta hai to error bhejdo
       console.log("existedUser: ", existedUser);
-      throw new ApiError(409, "Error: Email already used");
+      throw new Error("Error: Email already used");
     }
   
     //6
@@ -33,10 +32,7 @@ export const registerUser =async (req, res) => {
     const createdUser = await User.findById(user._id).select("-password");
     // 8
     if (!createdUser) {
-      throw new ApiError(
-        500,
-        "something went wrong while registering a new user"
-      );
+      throw new Error("something went wrong while registering a new user");
     }
     return res.status(201).json(
       {

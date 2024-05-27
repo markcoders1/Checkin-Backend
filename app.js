@@ -2,7 +2,6 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import errorMiddleware from "./middleware/error.middleware.js";
-import { ApiError } from "./utils/ApiError.js";
 import userRouter from "./routes/user.routes.js";
 import adminRouter from "./routes/admin.routes.js"
 const app = express();
