@@ -13,10 +13,9 @@ export const registerUser =async (req, res) => {
     
     const user = await User.create(req.body);
   
-    const createdUser = await User.findById(user._id).select("-password");
     return res.status(201).json(
       {
-        "createdUser":createdUser,
+        "createdUser":user,
         "message":"User registered Successfully"
       }
     );

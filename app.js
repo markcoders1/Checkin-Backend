@@ -30,6 +30,7 @@ app.use(cookieParser());
 // routes declaration
 app.use("/api", userRouter);
 app.use("/api/admin",adminRouter)
+app.use("*",(req,res)=>res.status(404).json({error:"route not found",code:404}))
 
 
 

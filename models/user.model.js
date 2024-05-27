@@ -66,11 +66,10 @@ const userSchema = new mongoose.Schema({
         trim: true,
         default: "checkout"
     },
-    attendance: [{
-        checkIn: Date,
-        checkOut: Date,
-        duration: String
-    }]
+    attendance:{
+        type:Array,
+        default:[]
+    }
 },
 { timestamps: true }
 ); 

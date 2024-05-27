@@ -231,72 +231,36 @@ const loginUser =async (req, res) => {
 };
 
 const checkInOrCheckOut = async (req,res) =>{
-    /*
-        algorithm:
-
-        - get user details.
-        - then check the status and attendance  
-        - IF status is checked in,  function will calculate Duration and then checkout
-        - IF status is checked out, function will check in
-        - IF status is In break, function will breakout and calculate Duration and then checkout
-        - 
-
-    */
     try {
-        
-        const user = await User.findById(req.user.id); //get logged in user's details
-        //user ki attendance ki details 
-        const attendance = user.attendance;
-        console.log("User Attendance Details: ", attendance);
-        //  user ka current status 
+        let user = await User.findById(req.user.id); //get logged in user's details
+        let attendance = user.attendance;
         const status = user.status;
-        console.log("User status details: ", status);
 
         if (status === "checkout") {
-            //  add check in time  
-            const checkinTime = user.attendance.push({ checkIn: new Date() }); // add current time object to attendance check in
-            console.log("Check In Time: ", checkinTime); // remove when testing done
-
-            // change status to "checkin"
-            user.status = "checkin" //! Check in postman if this works
-            
+            const checkinTime = user.attendance.push({ checkIn: new Date()}); 
+            user.status = "checkin"
             await user.save();
-
             return res
             .status(200)
             .json({"message":"checked in successfully"});
-            
         } else if (status === "checkin" || status === "inbreak"){
-            
-            //add check out time to user 
             const checkoutTime = attendance[attendance.length - 1].checkOut = new Date();
-            console.log("CHECKOUT TIME : ", checkoutTime); //remove this when testing is done
-
-            // read the checkin time from attendance 
             const checkInTime1 = attendance[attendance.length - 1].checkIn;
+            const calculatedDurationLocal = calculateDuration(checkInTime1,checkoutTime);
 
-            // calculate duration between checkin time and checkout time
-            const calculatedDurationLocal = calculateDuration(
-            checkInTime1,
-            checkoutTime
-            );
-
-            // check, duration should be empty
             if (attendance[attendance.length - 1].duration) {
             throw new Error("Error: value detected inside duration field"); 
             }
-            //now add this calculated Duration string to user
-            attendance[attendance.length - 1].duration = calculatedDurationLocal
-            console.log("Successfully Added Duration:  ",calculatedDurationLocal); //remove this when testing is done
+
+            attendance[attendance.length - 1].duration = calculatedDurationLocal;
           
-            // finally change status to checkout
-            user.status = "checkout" //! Check in postman if this works
+            user.status = "checkout" ;
             
-          
+            user.attendance[user.attendance.length-1]=attendance[attendance.length-1]
             await user.save();
             return res
             .json(
-            {"message":"checked out successfully"}
+            {"message":"checked out successfully", user}
           );
 
 
