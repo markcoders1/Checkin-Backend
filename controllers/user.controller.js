@@ -1,4 +1,3 @@
-import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.model.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
@@ -35,6 +34,13 @@ const logoutUser = asyncHandler(async (req, res, next) => {
 
     
 // a function that takes two Date() objects and 
+/*
+ToDo: change user schema to have month-wise object
+ToDo: merge check in and check out apis
+ToDo: have it so that only admins can create users 
+*/
+
+// a function that takes two Date() objects and
 // and returns the value of duration between them as String (08:45:34)
 const calculateDuration = (checkInTime, checkOutTime)=>{
 
@@ -86,26 +92,26 @@ const calculateDuration = (checkInTime, checkOutTime)=>{
 }
 
 const generateAccessAndRefreshToken = async (userId) => {
-    // call this method whenever you need to generate access and refresh token,
-    // takes userId as parameter, returns the generated AccessToken and refreshToken
+  // call this method whenever you need to generate access and refresh token,
+  // takes userId as parameter, returns the generated AccessToken and refreshToken
 
-    try {
-        const user = await User.findById(userId); // database se is ID ka user nikalo
-        const accessToken = user.generateAccessToken();
-        const refreshToken = user.generateRefreshToken();
+  try {
+    const user = await User.findById(userId); // database se is ID ka user nikalo
+    const accessToken = user.generateAccessToken();
+    const refreshToken = user.generateRefreshToken();
 
-        // User.model.js me jo refreshToken hai usme daldo generated refresh token
-        user.refreshToken = refreshToken;
-        await user.save({ validateBeforeSave: false }); // save bhi karlo changes
-        // validate before save = false because otherwise password validate hoga,
-        // required field hai user.model.js me password
-        // aur yahan hamne koi password ni diya, validate hota to error ata
+    // User.model.js me jo refreshToken hai usme daldo generated refresh token
+    user.refreshToken = refreshToken;
+    await user.save({ validateBeforeSave: false }); // save bhi karlo changes
+    // validate before save = false because otherwise password validate hoga,
+    // required field hai user.model.js me password
+    // aur yahan hamne koi password ni diya, validate hota to error ata
 
         return { accessToken, refreshToken };
     } catch (error) {
         throw new ApiError(
             500,
-            "Server Error: Something went wrong while generating Access and Refresh Tokens"
+            "Something went wrong while generating Access and Refresh Tokens"
         );
     }
 };
@@ -118,15 +124,15 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
         const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken
 
-        console.log("incomingRefreshToken : ");
-        console.log(incomingRefreshToken);
-    
-    
-        if (!incomingRefreshToken) {
-            throw new ApiError(401, "unauthorized request")
-        }
+    console.log("incomingRefreshToken : ");
+    console.log(incomingRefreshToken);
 
-        
+
+    if (!incomingRefreshToken) {
+        throw new ApiError(401, "unauthorized request")
+    }
+
+    try {
         const decodedToken = jwt.verify(
             incomingRefreshToken,
             process.env.REFRESH_TOKEN_SECRET
@@ -134,112 +140,48 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
 
 
-        console.log("decodedToken : ");
-        console.log(decodedToken);
+    console.log("decodedToken : ");
+    console.log(decodedToken);
 
+    const user = await User.findById(decodedToken?._id);
 
+    console.log("user : ");
+    console.log(user);
 
-        const user = await User.findById(decodedToken?._id)
+    if (!user) {
+      throw new ApiError(401, "Error: Invalid refresh token");
+    }
 
+    if (incomingRefreshToken !== user?.refreshToken) {
+      throw new ApiError(401, "Refresh token is expired or used");
+    }
 
+    const options = {
+      httpOnly: true,
+      secure: true,
+    };
 
+    const { accessToken, newRefreshToken } =
+      await generateAccessAndRefereshTokens(user._id);
 
-        console.log("user : ");
-        console.log(user);
-
-
-
-
-        if (!user) {
-            throw new ApiError(401, "Error: Invalid refresh token")
-        }
-    
-        if (incomingRefreshToken !== user?.refreshToken) {
-            throw new ApiError(401, "Refresh token is expired or used")
-            
-        }
-    
-        const options = {
-            httpOnly: true,
-            secure: true
-        }
-    
-        const {accessToken, newRefreshToken} = await generateAccessAndRefereshTokens(user._id)
-    
-        return res
-        .status(200)
-        .cookie("accessToken", accessToken, options)
-        .cookie("refreshToken", newRefreshToken, options)
-        .json(
-            new ApiResponse(
-                200, 
-                {accessToken, refreshToken: newRefreshToken},
-                "Access token refreshed"
-            )
-        )
+    return res
+      .status(200)
+      .cookie("accessToken", accessToken, options)
+      .cookie("refreshToken", newRefreshToken, options)
+      .json(
+        new ApiResponse(
+          200,
+          { accessToken, refreshToken: newRefreshToken },
+          "Access token refreshed"
+        ))
     } catch (error) {
         throw new ApiError(401, error?.message || "Invalid refresh token")
     }
 
-})
-
-
-const registerUser = asyncHandler(async (req, res) => {
-   
-    try {
-        const { fullName, email,  password } = req.body;
-        console.log("Email yeh agyi hai: " , email);
-        if (
-            // check k koi empty input to nahi agya, agar koi empty hai to error bhejo
-            [fullName, email, password].some(
-                (field) => field?.trim() === ""
-            )
-        ) {
-            throw new ApiError(400, "All fields are required");
-        }
-    
-        // 3
-        const existedUser = await User.findOne({
-            //User can communicate with database on our behalf
-            $or: [{ email }], //AND gate aur OR gate wala OR operator hai, koi aik value bhi mili to returns true
-    
-        });
-        if (existedUser) {
-            // If koi user esa exist karta hai to error bhejdo
-            console.log("existedUser: ", existedUser);
-            throw new ApiError(409, "Error: Email already used");
-        }
-    
-        //6
-        const user = await User.create({
-            fullName,
-            email: email?.toLowerCase(),
-            password,
-    
-        });
-    
-        const createdUser = await User.findById(user._id).select(
-            "-password"
-        );
-        // 8
-        if (!createdUser) {
-            throw new ApiError(
-                500,
-                "something went wrong while registering a new user"
-            );
-        }
-    
-        // 9, will return response using ApiResponse.js
-        //
-        return res.status(201).json(
-            //Json response bhejenge, matlab JavaScript Object Notation style mein
-            new ApiResponse(200, createdUser, "User registered Successfully") // new object
-        );
-    } catch (error) {
-        throw new ApiError(500, "Server Error: sign up failed")
-    }
+}catch(err){
+    console.log(err)
 }
-);
+})
 
 
 
@@ -324,64 +266,56 @@ const checkinUser = asyncHandler(async(req,res)=>{
         const user = await User.findById(req.user.id); //get logged in user 
         const checkinTime = user.attendance.push({ checkIn: new Date() }); // add current time object to attendance check in
 
-        console.log(checkinTime); // remove when testing done
+    console.log(checkinTime); // remove when testing done
 
-        await user.save();
-        return res
-        .json(
-            new ApiResponse(200, {} ,"Checked In Succesfully") 
-        )
-    } catch (err) {
-        console.error(err.message);
-        throw new ApiError(
-            500,
-            "Server error, Could not check in"
-        );
-    }
-
+    await user.save();
+    return res.json(new ApiResponse(200, {}, "Checked In Succesfully"));
+  } catch (err) {
+    console.error(err.message);
+    throw new ApiError(500, "Server error, Could not check in");
+  }
 });
 
-const checkoutUser  = asyncHandler (async(req, res)=>{
-    try {
-        const user = await User.findById(req.user.id);
+const checkoutUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
 
-        //user ki attendance ki details lelo
-        const attendance = user.attendance;
+    //user ki attendance ki details lelo
+    const attendance = user.attendance;
 
-        console.log("attendance: ", attendance); // remove when testing is done 
+    console.log("attendance: ", attendance); // remove when testing is done
 
-        if (attendance.length === 0){ 
-            //no attendance records at all, means they haven't checked in.
-            throw new ApiError(
-                404,
-                "No check-in detected, check-in first"
-            );
-        };
-        if (attendance[attendance.length - 1].checkOut) {
-            //check if user has already checked out. 
-           
-            throw new ApiError(400, "Error: User has already checked-out,  Check-in First");
-        };
+    if (attendance.length === 0) {
+      //no attendance records at all, means they haven't checked in.
+      throw new ApiError(404, "No check-in detected, check-in first");
+    }
+    if (attendance[attendance.length - 1].checkOut) {
+      //check if user has already checked out.
 
-        //adding check out time to user database
-        attendance[attendance.length - 1].checkOut = new Date();
+      throw new ApiError(
+        400,
+        "Error: User has already checked-out,  Check-in First"
+      );
+    }
 
+    //adding check out time to user database
+    attendance[attendance.length - 1].checkOut = new Date();
 
-        console.log("CHECKOUT TIME : ",checkoutTime); //remove this when testing is done
+    console.log("CHECKOUT TIME : ", checkoutTime); //remove this when testing is done
 
+    // read the checkin value from attendance so we can calculate duration
+    const checkInTime1 = attendance[attendance.length - 1].checkIn;
 
-        // read the checkin value from attendance so we can calculate duration
-        const checkInTime1 = attendance[attendance.length - 1].checkIn
+    // use function
+    const calculatedDurationLocal = calculateDuration(
+      checkInTime1,
+      checkoutTime
+    );
 
-        // use function
-        const calculatedDurationLocal = calculateDuration(checkInTime1, checkoutTime)
-
-        
-
-        //now add this calculated Duration string to user 
-        if (attendance[attendance.length - 1].duration){
-            throw new ApiError(400, "Error: value detected inside duration field")
-        }
+    //now add this calculated Duration string to user
+    if (attendance[attendance.length - 1].duration) {
+      throw new ApiError(400, "Error: value detected inside duration field");
+    }
 
         attendance[attendance.length - 1].duration = calculatedDurationLocal
         console.log("Successfully Added Duration:  ",calculatedDurationLocal); //remove this when testing is done
@@ -401,7 +335,7 @@ const checkoutUser  = asyncHandler (async(req, res)=>{
 
     }
 
-});
+};
 
 const changeCurrentPassword = asyncHandler(async (req, res) => {
     try {
@@ -462,12 +396,11 @@ try {
 
 
 export {
-    registerUser,
-    loginUser,
-    logoutUser,
-    checkinUser,
-    checkoutUser,
-    refreshAccessToken,
-    changeCurrentPassword,
-    updateAccountDetails,
+  loginUser,
+  logoutUser,
+  checkinUser,
+  checkoutUser,
+  refreshAccessToken,
+  changeCurrentPassword,
+  updateAccountDetails,
 };
