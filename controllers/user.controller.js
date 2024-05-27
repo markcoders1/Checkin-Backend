@@ -5,7 +5,7 @@ import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 
-const logoutUser = asyncHandler(async (req, res, next) => {
+const logoutUser =async (req, res, next) => {
     try {
             await User.findByIdAndUpdate(
                 req.user._id, // req.user will not be accessible without middleware verifyJWT
@@ -30,9 +30,7 @@ const logoutUser = asyncHandler(async (req, res, next) => {
         } catch (error) {
             next(error);
     }
-    });
-
-    
+};  
 // a function that takes two Date() objects and 
 /*
 ToDo: change user schema to have month-wise object
@@ -117,7 +115,7 @@ const generateAccessAndRefreshToken = async (userId) => {
 };
 
 
-const refreshAccessToken = asyncHandler(async (req, res) => {
+const refreshAccessToken =async (req, res) => {
 
     try {
 
@@ -181,11 +179,11 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 }catch(err){
     console.log(err)
 }
-})
+}
 
 
 
-const loginUser = asyncHandler(async (req, res) => {
+const loginUser =async (req, res) => {
     // algorithm
     // 1. req.body se data lao
     // 2. email hai ya nahi check
@@ -258,9 +256,9 @@ const loginUser = asyncHandler(async (req, res) => {
    } catch (error) {
     throw new ApiError(500, "Server Error: login failed", error)
    }
-});
+};
 
-const checkinUser = asyncHandler(async(req,res)=>{
+const checkinUser = async(req,res)=>{
 
     try {
         const user = await User.findById(req.user.id); //get logged in user 
@@ -274,7 +272,7 @@ const checkinUser = asyncHandler(async(req,res)=>{
     console.error(err.message);
     throw new ApiError(500, "Server error, Could not check in");
   }
-});
+};
 
 const checkoutUser = async (req, res) => {
   try {
@@ -337,7 +335,7 @@ const checkoutUser = async (req, res) => {
 
 };
 
-const changeCurrentPassword = asyncHandler(async (req, res) => {
+const changeCurrentPassword =async (req, res) => {
     try {
         const { oldPassword, newPassword } = req.body;
     
@@ -363,9 +361,9 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
     } catch (error) {
         throw new ApiError(500, "Server Error: could not change password")
     }
-});
+};
 
-const updateAccountDetails = asyncHandler(async (req, res) => {
+const updateAccountDetails =async (req, res) => {
 try {
         const { fullName, email } = req.body; 
         if (!fullName || !email) {
@@ -392,7 +390,7 @@ try {
 
     throw new ApiError(500, error)
 }
-});
+};
 
 
 export {
