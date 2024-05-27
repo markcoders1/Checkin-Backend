@@ -60,6 +60,12 @@ const userSchema = new mongoose.Schema({
     refreshToken: {
         type: String,
     },
+    status:{
+        type: String, // checkin || checkout || inbreak
+        lowercase: true,
+        trim: true,
+        default: "checkout"
+    },
     attendance: [{
         checkIn: Date,
         checkOut: Date,

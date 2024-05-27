@@ -1,7 +1,6 @@
 import { Router } from "express";
 import {
-    checkinUser,
-    checkoutUser,
+    checkInOrCheckOut,
     loginUser,
     logoutUser,
     refreshAccessToken,
@@ -18,9 +17,7 @@ router.route("/login").post(loginUser)
 
 router.route("/logout").post(verifyJWT, logoutUser)
 
-router.route("/checkin").post(verifyJWT, checkinUser)
-
-router.route("/checkout").post(verifyJWT, checkoutUser)
+router.route("/check").post(verifyJWT, checkInOrCheckOut)
 
 router.route("/update-account").patch(verifyJWT, updateAccountDetails);
 //patch so that the whole is not updated

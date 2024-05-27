@@ -31,8 +31,6 @@ app.use(cookieParser());
 app.use("/api", userRouter);
 app.use("/api/admin",adminRouter)
 
-//paced after all other routes and middleware,
-// this ensure that any errors occurring in your application are handled by this middleware,
-// and you don't need to repeat the error handling logic in every route.
+
 
 export { app };

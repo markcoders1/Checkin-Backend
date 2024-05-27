@@ -230,81 +230,155 @@ const loginUser =async (req, res) => {
    }
 };
 
-const checkinUser = async(req,res)=>{
+const checkInOrCheckOut = async (req,res) =>{
+    /*
+        algorithm:
 
+        - get user details.
+        - then check the status and attendance  
+        - IF status is checked in,  function will calculate Duration and then checkout
+        - IF status is checked out, function will check in
+        - IF status is In break, function will breakout and calculate Duration and then checkout
+        - 
+
+    */
     try {
-        const user = await User.findById(req.user.id); //get logged in user 
-        const checkinTime = user.attendance.push({ checkIn: new Date() }); // add current time object to attendance check in
-
-    console.log(checkinTime); // remove when testing done
-
-    await user.save();
-    return res.json({"message":"checked in successfully"});
-  } catch (error) {
-    res.status(500).json({
-      message:"Server error, Could not check in",
-      error:error.message
-    })
-  }
-};
-
-const checkoutUser = async (req, res) => {
-  try {
-    const user = await User.findById(req.user.id);
-
-    //user ki attendance ki details lelo
-    const attendance = user.attendance;
-
-    console.log("attendance: ", attendance); // remove when testing is done
-
-    if (attendance.length === 0) {
-      //no attendance records at all, means they haven't checked in.
-      throw new Error("No check-in detected, check-in first");
-    }
-    if (attendance[attendance.length - 1].checkOut) {
-      //check if user has already checked out.
-
-      throw new Error(
-        "Error: User has already checked-out,  Check-in First"
-      );
-    }
-
-    //adding check out time to user database
-    attendance[attendance.length - 1].checkOut = new Date();
-
-    console.log("CHECKOUT TIME : ", checkoutTime); //remove this when testing is done
-
-    // read the checkin value from attendance so we can calculate duration
-    const checkInTime1 = attendance[attendance.length - 1].checkIn;
-
-    // use function
-    const calculatedDurationLocal = calculateDuration(
-      checkInTime1,
-      checkoutTime
-    );
-
-    //now add this calculated Duration string to user
-    if (attendance[attendance.length - 1].duration) {
-      throw new Error("Error: value detected inside duration field");
-    }
-
-        attendance[attendance.length - 1].duration = calculatedDurationLocal
-        console.log("Successfully Added Duration:  ",calculatedDurationLocal); //remove this when testing is done
         
-        
-        await user.save();
-        return res
-        .json(
+        const user = await User.findById(req.user.id); //get logged in user's details
+        //user ki attendance ki details 
+        const attendance = user.attendance;
+        console.log("User Attendance Details: ", attendance);
+        //  user ka current status 
+        const status = user.status;
+        console.log("User status details: ", status);
+
+        if (status === "checkout") {
+            //  add check in time  
+            const checkinTime = user.attendance.push({ checkIn: new Date() }); // add current time object to attendance check in
+            console.log("Check In Time: ", checkinTime); // remove when testing done
+
+            // change status to "checkin"
+            user.status = "checkin" //! Check in postman if this works
+            
+            await user.save();
+
+            return res
+            .status(200)
+            .json({"message":"checked in successfully"});
+            
+        } else if (status === "checkin" || status === "inbreak"){
+            
+            //add check out time to user 
+            const checkoutTime = attendance[attendance.length - 1].checkOut = new Date();
+            console.log("CHECKOUT TIME : ", checkoutTime); //remove this when testing is done
+
+            // read the checkin time from attendance 
+            const checkInTime1 = attendance[attendance.length - 1].checkIn;
+
+            // calculate duration between checkin time and checkout time
+            const calculatedDurationLocal = calculateDuration(
+            checkInTime1,
+            checkoutTime
+            );
+
+            // check, duration should be empty
+            if (attendance[attendance.length - 1].duration) {
+            throw new Error("Error: value detected inside duration field"); 
+            }
+            //now add this calculated Duration string to user
+            attendance[attendance.length - 1].duration = calculatedDurationLocal
+            console.log("Successfully Added Duration:  ",calculatedDurationLocal); //remove this when testing is done
+          
+            // finally change status to checkout
+            user.status = "checkout" //! Check in postman if this works
+            
+          
+            await user.save();
+            return res
+            .json(
             {"message":"checked out successfully"}
-        );
-    } catch (error) {
-      res.status(500).json({
-        message:"Server Error: Could not Check out ",
-        error:error.message
-      })
-    }
+          );
 
-};
+
+
+        } else {
+            throw new Error("Error: status should only be 'checkin' or 'checkout' or 'inbreak'")
+        }
+
+
+    } catch (error) {
+        res.status(500)
+        .json({
+            message: "Something went wrong while checkin/checkout operation",
+            error
+        })
+    }
+}
+// const checkinUser = async(req,res)=>{
+
+//     try {
+//         const user = await User.findById(req.user.id); //get logged in user 
+//         const checkinTime = user.attendance.push({ checkIn: new Date() }); // add current time object to attendance check in
+
+//     console.log(checkinTime); // remove when testing done
+
+//     await user.save();
+//     return res.json({"message":"checked in successfully"});
+//   } catch (error) {
+//     res.status(500).json({
+//       message:"Server error, Could not check in",
+//       error:error.message
+//     })
+//   }
+// };
+
+// const checkoutUser = async (req, res) => {
+//   try {
+//     const user = await User.findById(req.user.id);
+
+//     //user ki attendance ki details lelo
+//     const attendance = user.attendance;
+
+//     console.log("attendance: ", attendance); // remove when testing is done
+
+
+
+//     //adding check out time to user database
+//     attendance[attendance.length - 1].checkOut = new Date();
+
+//     console.log("CHECKOUT TIME : ", checkoutTime); //remove this when testing is done
+
+//     // read the checkin value from attendance so we can calculate duration
+//     const checkInTime1 = attendance[attendance.length - 1].checkIn;
+
+//     // use function
+//     const calculatedDurationLocal = calculateDuration(
+//       checkInTime1,
+//       checkoutTime
+//     );
+
+//     //now add this calculated Duration string to user
+//     if (attendance[attendance.length - 1].duration) {
+//       throw new Error("Error: value detected inside duration field");
+//     }
+
+//         attendance[attendance.length - 1].duration = calculatedDurationLocal
+//         console.log("Successfully Added Duration:  ",calculatedDurationLocal); //remove this when testing is done
+        
+        
+//         await user.save();
+//         return res
+//         .json(
+//             {"message":"checked out successfully"}
+//         );
+//     } catch (error) {
+//       res.status(500).json({
+//         message:"Server Error: Could not Check out ",
+//         error:error.message
+//       })
+//     }
+
+// };
 
 const changeCurrentPassword =async (req, res) => {
     try {
@@ -372,8 +446,7 @@ try {
 export {
   loginUser,
   logoutUser,
-  checkinUser,
-  checkoutUser,
+  checkInOrCheckOut,
   refreshAccessToken,
   changeCurrentPassword,
   updateAccountDetails,
