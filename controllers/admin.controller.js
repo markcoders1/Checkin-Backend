@@ -1,6 +1,5 @@
 import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.model.js";
-import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
@@ -40,6 +39,9 @@ export const registerUser =async (req, res) => {
       );
     }
     return res.status(201).json(
-      new ApiResponse(200, createdUser, "User registered Successfully") // new object
+      {
+        "createdUser":createdUser,
+        "message":"User registered Successfully"
+      }
     );
   };

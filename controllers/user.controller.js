@@ -1,6 +1,5 @@
 import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.model.js";
-import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
@@ -26,7 +25,7 @@ const logoutUser =async (req, res, next) => {
                 .status(200)
                 .clearCookie("accessToken")
                 .clearCookie("refreshToken")
-                .json(new ApiResponse(200, {}, "User Logged Out"));
+                .json({"message":"user logged out"});
         } catch (error) {
             next(error);
     }
@@ -166,12 +165,11 @@ const refreshAccessToken =async (req, res) => {
       .status(200)
       .cookie("accessToken", accessToken, options)
       .cookie("refreshToken", newRefreshToken, options)
-      .json(
-        new ApiResponse(
-          200,
-          { accessToken, refreshToken: newRefreshToken },
-          "Access token refreshed"
-        ))
+      .json({
+        accessToken,
+        refreshToken:newRefreshToken,
+        message:"Access token refreshed"
+    })
     } catch (error) {
         throw new ApiError(401, error?.message || "Invalid refresh token")
     }
@@ -242,17 +240,11 @@ const loginUser =async (req, res) => {
          .status(200)
          .cookie("accessToken", accessToken, options)
          .cookie("refreshToken", refreshToken, options)
-         .json(
-             new ApiResponse(
-                 200,
-                 {
-                     user: loggedInUser,
-                     accessToken,
-                     refreshToken,
-                 },
-                 "User Logged In Successfully"
-             )
-         );
+        .json({
+            "user":loggedInUser,
+            accessToken,
+            refreshToken
+        })
    } catch (error) {
     throw new ApiError(500, "Server Error: login failed", error)
    }
@@ -267,7 +259,7 @@ const checkinUser = async(req,res)=>{
     console.log(checkinTime); // remove when testing done
 
     await user.save();
-    return res.json(new ApiResponse(200, {}, "Checked In Succesfully"));
+    return res.json({"message":"checked in successfully"});
   } catch (err) {
     console.error(err.message);
     throw new ApiError(500, "Server error, Could not check in");
@@ -322,7 +314,7 @@ const checkoutUser = async (req, res) => {
         await user.save();
         return res
         .json(
-            new ApiResponse(200, {} ,"Checked Out Succesfully") 
+            {"message":"checked out successfully"}
         );
     } catch (err) {
         console.error(err.message);
@@ -357,7 +349,7 @@ const changeCurrentPassword =async (req, res) => {
     
         return res
             .status(200)
-            .json(new ApiResponse(200, {}, "Password changed successfully"));
+            .json({"message":"password changed successfully"});
     } catch (error) {
         throw new ApiError(500, "Server Error: could not change password")
     }
@@ -384,7 +376,7 @@ try {
         return res
             .status(200)
             .json(
-                new ApiResponse(200, user, "Account details updated successfully", error)
+                {"message":"Account details updated successfully",user}
             );
 } catch (error) {
 
