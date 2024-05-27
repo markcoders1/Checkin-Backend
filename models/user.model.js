@@ -1,59 +1,50 @@
-/*
-Complete Functionality:
-
-1. User k models mein 
-FullName:
-Email:                     //username nahi rakh rha no need
-Password:
-
-
-2. Controllers and routes
-/signup     : controller will be for registering a new user: 
-/login      : for user login, will lead to home page where he can change password or checkin/checkout or log out (will require registered user)
-
-// below all controllers will require login to access
-
-/logout     :  
-/changeUser : this controller will be for editing user details such as changing password or full name or timings 
-/checkin    : pressing the checkin button will trigger this
-/checkout   : pressing the checkout button will trigger this
-
-3. make an authenticator middleware VerifyJWT which will see if user is logged in or not and npm install jwt library
-
-4. password will be  encrypted before saving using bcrypt library 
-
-5. see how to add a admin account/route like in linton so that an admin can see everyone's attendance and see who is late etc
-*/
-
-/*
-feedback
-Error response is currently in HTML, make it JSON response, API response
-Time difference between check in and check out has to be calculated and saved (done)
-admin middleware separate
-only admin can sign up, user can only login and checkin/checkout
-
-Future functionality:
-
-look into how to make it easier to Check in and check out using fingerprint or a QR Code scanner 
-
-add graphs for every user to see who's spending average 9 hours/day (excluding weekends and holidays)
-add usual timings of users in model maybe
-add integrate work from home scenario 
-
-*/
-
-
 import mongoose, { Schema } from "mongoose";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
 
 const userSchema = new mongoose.Schema({
-    fullName: {
+    firstName: {
+        type: String,
+        required: true
+    },
+    lastName:{
+        type: String,
+        required: true
+    },
+    DOB:{
+        type: String,
+        required: true
+    },
+    CNIC:{
+        type: Number,
+        required: true
+    },
+    phone:{
+        type: String,
+        required: true
+    },
+    designation:{
+        type: String,
+        required: true
+    },
+    teamLead:{
+        type: String,
+        required: true
+    },
+    shift:{
+        type: String,
+        required: true
+    },
+    department:{
+        type: String,
+        required: true
+    },
+    role:{
         type: String,
         required: true,
-        index: true,
-    },
+        default:"admin"
+    }, 
     email: {
         type: String,
         required: true,
@@ -83,8 +74,6 @@ userSchema.pre('save', async function(next) {
     this.password = await bcrypt.hash(this.password, salt);
     next();
 });
-
-
 
 
 //custom method banaya hai

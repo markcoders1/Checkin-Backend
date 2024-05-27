@@ -1,43 +1,26 @@
 import { User } from "../models/user.model.js";
-import jwt from "jsonwebtoken";
-import mongoose from "mongoose";
-import bcrypt from "bcrypt";
 
 export const registerUser =async (req, res) => {
-    const { fullName, email, password } = req.body;
-    if (
-      [fullName, email, password].some((field) => field?.trim() === "")
-    ) {
-      throw new Error("All fields are required");
+  try{
+    if(req.user.role!=='admin'){
+      res.status(401).json({message:"Unauthorized"})
     }
   
-    // 3
-    const existedUser = await User.findOne({
-      //User can communicate with database on our behalf
-      $or: [{ email }], //AND gate aur OR gate wala OR operator hai, koi aik value bhi mili to returns true
-    });
+    const existedUser = await User.findOne({email:req.body.email});
     if (existedUser) {
-      // If koi user esa exist karta hai to error bhejdo
-      console.log("existedUser: ", existedUser);
-      throw new Error("Error: Email already used");
+      res.status(400).json({message:"user already exists"})
     }
-  
-    //6
-    const user = await User.create({
-      fullName,
-      email: email?.toLowerCase(),
-      password,
-    });
+    
+    const user = await User.create(req.body);
   
     const createdUser = await User.findById(user._id).select("-password");
-    // 8
-    if (!createdUser) {
-      throw new Error("something went wrong while registering a new user");
-    }
     return res.status(201).json(
       {
         "createdUser":createdUser,
         "message":"User registered Successfully"
       }
     );
-  };
+  }catch(error){
+    res.status({error})
+  }
+};
