@@ -21,6 +21,6 @@ export const registerUser =async (req, res) => {
       }
     );
   }catch(error){
-    res.status({error})
+    res.json({error})
   }
 };
