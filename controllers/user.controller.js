@@ -6,52 +6,83 @@ import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 
+const logoutUser = asyncHandler(async (req, res, next) => {
+    try {
+            await User.findByIdAndUpdate(
+                req.user._id, // req.user will not be accessible without middleware verifyJWT
+                {
+                    $set: {
+                        refreshToken: undefined,
+                    },
+                },
+                {
+                    new: true,
+                }
+            );
+            const options = {
+                httpOnly: true,
+                secure: true,
+            };
+            return res
+                .status(200)
+                .clearCookie("accessToken")
+                .clearCookie("refreshToken")
+                .json(new ApiResponse(200, {}, "User Logged Out"));
+        } catch (error) {
+            next(error);
+    }
+    });
 
+    
 // a function that takes two Date() objects and 
 // and returns the value of duration between them as String (08:45:34)
 const calculateDuration = (checkInTime, checkOutTime)=>{
 
-    if (!checkInTime) {
-        throw new ApiError(404, "no check in time to calculate duration")
-    };
-    if (!checkOutTime) {
-        throw new ApiError(404, "no check out time to calculate duration")
-    };
-
-    //number of milliseconds between the date object and midnight January 1, 1970 UTC
-    // difference calculate karne k lye dono ki value numbers me chahiye so that we can subtract
-
-    const checkInTimeInMilliSeconds = checkInTime.valueOf();
-    console.log("checkInTimeInMilliSeconds: ", checkInTimeInMilliSeconds);
-
-    const checkOutTimeInMilliSeconds = checkOutTime.valueOf();
-    console.log("checkOutTimeInMilliSeconds",checkOutTimeInMilliSeconds);
-
-    //calculate their difference
-    const durationInMilliseconds = checkOutTimeInMilliSeconds - checkInTimeInMilliSeconds
-    console.log("durationInMilliseconds: ", durationInMilliseconds);
- 
-    // convert the duration from milliseconds to Hours and Minutes string format( "08:56:01" ) 
-    // Convert milliseconds to hours, minutes, and seconds
-    const millisecondsInAnHour = 1000 * 60 * 60;
-    const millisecondsInAMinute = 1000 * 60;
-    const millisecondsInASecond = 1000;
+    try {
+        if (!checkInTime) {
+            throw new ApiError(404, "no check in time to calculate duration")
+        };
+        if (!checkOutTime) {
+            throw new ApiError(404, "no check out time to calculate duration")
+        };
     
-    const totalHours = Math.floor(durationInMilliseconds / millisecondsInAnHour);
-    const totalMinutes = Math.floor((durationInMilliseconds % millisecondsInAnHour) / millisecondsInAMinute);
-    const totalSeconds = Math.floor((durationInMilliseconds % millisecondsInAMinute) / millisecondsInASecond);
+        //number of milliseconds between the date object and midnight January 1, 1970 UTC
+        // difference calculate karne k lye dono ki value numbers me chahiye so that we can subtract
     
-    // Format hours, minutes, and seconds to be two digits
-    const hoursString = String(totalHours).padStart(2, '0');
-    const minutesString = String(totalMinutes).padStart(2, '0');
-    const secondsString = String(totalSeconds).padStart(2, '0');
+        const checkInTimeInMilliSeconds = checkInTime.valueOf();
+        console.log("checkInTimeInMilliSeconds: ", checkInTimeInMilliSeconds);
     
-    // Combine hours, minutes, and seconds into a digital clock format
-    const formattedTime = `${hoursString}:${minutesString}:${secondsString}`;
+        const checkOutTimeInMilliSeconds = checkOutTime.valueOf();
+        console.log("checkOutTimeInMilliSeconds",checkOutTimeInMilliSeconds);
     
-    console.log(`Formatted Duration: ${formattedTime}`);
-
-return formattedTime
+        //calculate their difference
+        const durationInMilliseconds = checkOutTimeInMilliSeconds - checkInTimeInMilliSeconds
+        console.log("durationInMilliseconds: ", durationInMilliseconds);
+     
+        // convert the duration from milliseconds to Hours and Minutes string format( "08:56:01" ) 
+        // Convert milliseconds to hours, minutes, and seconds
+        const millisecondsInAnHour = 1000 * 60 * 60;
+        const millisecondsInAMinute = 1000 * 60;
+        const millisecondsInASecond = 1000;
+        
+        const totalHours = Math.floor(durationInMilliseconds / millisecondsInAnHour);
+        const totalMinutes = Math.floor((durationInMilliseconds % millisecondsInAnHour) / millisecondsInAMinute);
+        const totalSeconds = Math.floor((durationInMilliseconds % millisecondsInAMinute) / millisecondsInASecond);
+        
+        // Format hours, minutes, and seconds to be two digits
+        const hoursString = String(totalHours).padStart(2, '0');
+        const minutesString = String(totalMinutes).padStart(2, '0');
+        const secondsString = String(totalSeconds).padStart(2, '0');
+        
+        // Combine hours, minutes, and seconds into a digital clock format
+        const formattedTime = `${hoursString}:${minutesString}:${secondsString}`;
+        
+        console.log(`Formatted Duration: ${formattedTime}`);
+    
+    return formattedTime
+    } catch (error) {
+        throw new ApiError(500, "Couldnt Calculate checkin Duraion")
+    }
 }
 
 const generateAccessAndRefreshToken = async (userId) => {
@@ -74,24 +105,28 @@ const generateAccessAndRefreshToken = async (userId) => {
     } catch (error) {
         throw new ApiError(
             500,
-            "Something went wrong while generating Access and Refresh Tokens"
+            "Server Error: Something went wrong while generating Access and Refresh Tokens"
         );
     }
 };
 
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
-    const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken
-
-    console.log("incomingRefreshToken : ");
-    console.log(incomingRefreshToken);
-
-
-    if (!incomingRefreshToken) {
-        throw new ApiError(401, "unauthorized request")
-    }
 
     try {
+
+
+        const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken
+
+        console.log("incomingRefreshToken : ");
+        console.log(incomingRefreshToken);
+    
+    
+        if (!incomingRefreshToken) {
+            throw new ApiError(401, "unauthorized request")
+        }
+
+        
         const decodedToken = jwt.verify(
             incomingRefreshToken,
             process.env.REFRESH_TOKEN_SECRET
@@ -151,55 +186,60 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
 const registerUser = asyncHandler(async (req, res) => {
    
-    const { fullName, email,  password } = req.body;
-    console.log("Email yeh agyi hai: " , email);
-    if (
-        // check k koi empty input to nahi agya, agar koi empty hai to error bhejo
-        [fullName, email, password].some(
-            (field) => field?.trim() === ""
-        )
-    ) {
-        throw new ApiError(400, "All fields are required");
-    }
-
-    // 3
-    const existedUser = await User.findOne({
-        //User can communicate with database on our behalf
-        $or: [{ email }], //AND gate aur OR gate wala OR operator hai, koi aik value bhi mili to returns true
-
-    });
-    if (existedUser) {
-        // If koi user esa exist karta hai to error bhejdo
-        console.log("existedUser: ", existedUser);
-        throw new ApiError(409, "Error: Email already used");
-    }
-
-    //6
-    const user = await User.create({
-        fullName,
-        email: email?.toLowerCase(),
-        password,
-
-    });
-
-    const createdUser = await User.findById(user._id).select(
-        "-password"
-    );
-    // 8
-    if (!createdUser) {
-        throw new ApiError(
-            500,
-            "something went wrong while registering a new user"
+    try {
+        const { fullName, email,  password } = req.body;
+        console.log("Email yeh agyi hai: " , email);
+        if (
+            // check k koi empty input to nahi agya, agar koi empty hai to error bhejo
+            [fullName, email, password].some(
+                (field) => field?.trim() === ""
+            )
+        ) {
+            throw new ApiError(400, "All fields are required");
+        }
+    
+        // 3
+        const existedUser = await User.findOne({
+            //User can communicate with database on our behalf
+            $or: [{ email }], //AND gate aur OR gate wala OR operator hai, koi aik value bhi mili to returns true
+    
+        });
+        if (existedUser) {
+            // If koi user esa exist karta hai to error bhejdo
+            console.log("existedUser: ", existedUser);
+            throw new ApiError(409, "Error: Email already used");
+        }
+    
+        //6
+        const user = await User.create({
+            fullName,
+            email: email?.toLowerCase(),
+            password,
+    
+        });
+    
+        const createdUser = await User.findById(user._id).select(
+            "-password"
         );
+        // 8
+        if (!createdUser) {
+            throw new ApiError(
+                500,
+                "something went wrong while registering a new user"
+            );
+        }
+    
+        // 9, will return response using ApiResponse.js
+        //
+        return res.status(201).json(
+            //Json response bhejenge, matlab JavaScript Object Notation style mein
+            new ApiResponse(200, createdUser, "User registered Successfully") // new object
+        );
+    } catch (error) {
+        throw new ApiError(500, "Server Error: sign up failed")
     }
-
-    // 9, will return response using ApiResponse.js
-    //
-    return res.status(201).json(
-        //Json response bhejenge, matlab JavaScript Object Notation style mein
-        new ApiResponse(200, createdUser, "User registered Successfully") // new object
-    );
-});
+}
+);
 
 
 
@@ -214,95 +254,69 @@ const loginUser = asyncHandler(async (req, res) => {
     // 6. send cookie
 
     // 1.
-    const { email, password } = req.body;
-
-    // 2.
-    if (!email) {
-        throw new ApiError(400, "Email is required");
-    }
-    console.log("logged in Email: ", email);
-
-    // 3. database me find karen dono, return jo pehle mila
-    const user = await User.findOne({
-        $or: [{ email }],
-    });
-
-    // 3.5 agar database me nahi mila matlab is username/email ka koi user database me nahi hai
-    if (!user) {
-        throw new ApiError(
-            404,
-            "Failed to login, User with this Email does not exist"
-        );
-    }
-
-    // 4
-    const isPasswordValid = await user.isPasswordCorrect(password);
-    if (!isPasswordValid) {
-        throw new ApiError(401, "Invalid Password");
-    }
-
-    // 5.
-    const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
-        user._id
-    );
-
-    // 6. cookie
-
-    const loggedInUser = await User.findById(user._id).select(
-        "-password -refreshToken"
-    );
-
-    // cookies bhejte waqt uske kuch options design karte parte hain (object hota hai)
-    const options = {
-        httpOnly: true,
-        secure: true,
-    };
-    return res
-        .status(200)
-        .cookie("accessToken", accessToken, options)
-        .cookie("refreshToken", refreshToken, options)
-        .json(
-            new ApiResponse(
-                200,
-                {
-                    user: loggedInUser,
-                    accessToken,
-                    refreshToken,
-                },
-                "User Logged In Successfully"
-            )
-        );
+   try {
+     const { email, password } = req.body;
+ 
+     // 2.
+     if (!email) {
+         throw new ApiError(400, "Email is required");
+     }
+     console.log("logged in Email: ", email);
+ 
+     // 3. database me find karen dono, return jo pehle mila
+     const user = await User.findOne({
+         $or: [{ email }],
+     });
+ 
+     // 3.5 agar database me nahi mila matlab is username/email ka koi user database me nahi hai
+     if (!user) {
+         throw new ApiError(
+             404,
+             "Failed to login, User with this Email does not exist"
+         );
+     }
+ 
+     // 4
+     const isPasswordValid = await user.isPasswordCorrect(password);
+     if (!isPasswordValid) {
+         throw new ApiError(401, "Invalid Password");
+     }
+ 
+     // 5.
+     const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
+         user._id
+     );
+ 
+     // 6. cookie
+ 
+     const loggedInUser = await User.findById(user._id).select(
+         "-password -refreshToken"
+     );
+ 
+     // cookies bhejte waqt uske kuch options design karte parte hain (object hota hai)
+     const options = {
+         httpOnly: true,
+         secure: true,
+     };
+     return res
+         .status(200)
+         .cookie("accessToken", accessToken, options)
+         .cookie("refreshToken", refreshToken, options)
+         .json(
+             new ApiResponse(
+                 200,
+                 {
+                     user: loggedInUser,
+                     accessToken,
+                     refreshToken,
+                 },
+                 "User Logged In Successfully"
+             )
+         );
+   } catch (error) {
+    throw new ApiError(500, "Server Error: login failed", error)
+   }
 });
-
-
-const logoutUser = asyncHandler(async (req, res, next) => {
-try {
-        await User.findByIdAndUpdate(
-            req.user._id, // req.user will not be accessible without middleware verifyJWT
-            {
-                $set: {
-                    refreshToken: undefined,
-                },
-            },
-            {
-                new: true,
-            }
-        );
-        const options = {
-            httpOnly: true,
-            secure: true,
-        };
-        return res
-            .status(200)
-            .clearCookie("accessToken")
-            .clearCookie("refreshToken")
-            .json(new ApiResponse(200, {}, "User Logged Out"));
-    } catch (error) {
-        next(error);
-}
-});
-
-
 
 const checkinUser = asyncHandler(async(req,res)=>{
 
@@ -382,7 +396,7 @@ const checkoutUser  = asyncHandler (async(req, res)=>{
         console.error(err.message);
         throw new ApiError(
             500,
-            "Error Checking out "
+            "Server Error: Could not Check out "
         );
 
     }
@@ -390,51 +404,60 @@ const checkoutUser  = asyncHandler (async(req, res)=>{
 });
 
 const changeCurrentPassword = asyncHandler(async (req, res) => {
-    const { oldPassword, newPassword } = req.body;
-
-    //pehle current user lo jo already logged in hai
-    //login k waqt auth middleware me data gya hoga uska (req.user)
-    const user = await User.findById(req.user?._id);
-
-    //hamare pas user schema mein aik method hai isPasswordCorrect jo true ya falsa return karta hai
-
-    const isPasswordCorrect = await user.isPasswordCorrect(oldPassword); // save this true/false value in a variable
-
-    if (!isPasswordCorrect) {
-        throw new ApiError(400, "Old Password is not correct");
+    try {
+        const { oldPassword, newPassword } = req.body;
+    
+        //pehle current user lo jo already logged in hai
+        //login k waqt auth middleware me data gya hoga uska (req.user)
+        const user = await User.findById(req.user?._id);
+    
+        //hamare pas user schema mein aik method hai isPasswordCorrect jo true ya falsa return karta hai
+    
+        const isPasswordCorrect = await user.isPasswordCorrect(oldPassword); // save this true/false value in a variable
+    
+        if (!isPasswordCorrect) {
+            throw new ApiError(400, "Old Password is not correct");
+        }
+        // if isPasswordCorrect = true to is line pe ayega
+        user.password = newPassword; // set newPassword, this only sets it and does not save it
+    
+        await user.save({ validateBeforeSave: false });
+    
+        return res
+            .status(200)
+            .json(new ApiResponse(200, {}, "Password changed successfully"));
+    } catch (error) {
+        throw new ApiError(500, "Server Error: could not change password")
     }
-    // if isPasswordCorrect = true to is line pe ayega
-    user.password = newPassword; // set newPassword, this only sets it and does not save it
-
-    await user.save({ validateBeforeSave: false });
-
-    return res
-        .status(200)
-        .json(new ApiResponse(200, {}, "Password changed successfully"));
 });
 
 const updateAccountDetails = asyncHandler(async (req, res) => {
-    const { fullName, email } = req.body; 
-    if (!fullName || !email) {
-        throw new ApiError(400, "All fields are required");
-    }
-
-    const user = await User.findByIdAndUpdate(
-        req.user?._id,
-        {
-            $set: {
-                fullName: fullName,
-                email: email,
+try {
+        const { fullName, email } = req.body; 
+        if (!fullName || !email) {
+            throw new ApiError(400, "All fields are required");
+        }
+    
+        const user = await User.findByIdAndUpdate(
+            req.user?._id,
+            {
+                $set: {
+                    fullName: fullName,
+                    email: email,
+                },
             },
-        },
-        { new: true }
-    ).select("-password");
+            { new: true }
+        ).select("-password");
+    
+        return res
+            .status(200)
+            .json(
+                new ApiResponse(200, user, "Account details updated successfully", error)
+            );
+} catch (error) {
 
-    return res
-        .status(200)
-        .json(
-            new ApiResponse(200, user, "Account details updated successfully")
-        );
+    throw new ApiError(500, error)
+}
 });
 
 
