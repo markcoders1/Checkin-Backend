@@ -234,7 +234,7 @@ const loginUser =async (req, res) => {
 
 const test=async (req,res)=>{
   try{
-    const testItem=Number(new Date().getFullYear())
+    const testItem="hi"
     console.log(testItem)
     res.status(200).json({testItem})
   }catch(err){
@@ -246,59 +246,26 @@ const test=async (req,res)=>{
 const checkInOrCheckOut = async (req,res) =>{
   try {
         let user = await User.findById(req.user.id);
-        const month="2024-06"
-        // const month = new Date().toISOString().slice(0,7)
-        console.log(req.user.id)
-        let UserAttendance = await Attendance.findOne({userId:req.user.id,month:month})
-
         const status=user.status
 
-        
-        let prevUserAttendance
-        let newMonthFlag=false
-        let objectArray
-
-        if (!UserAttendance){
-          UserAttendance=await Attendance.create({userId:req.user.id})
-          objectArray=UserAttendance.attendance
-          
-          if(status==="checkin"){
-            let newMonth=new Date().getMonth()+1
-            let year = Number(new Date().getFullYear())
-            
-            if(newMonth==1){
-              newMonth=12
-              year=new Date().getFullYear()-1
-            }
-            newMonth=String(newMonth-1)
-            const lastMonth=`${year}-${newMonth.length==1?`0${newMonth}`:newMonth}`
-            prevUserAttendance=await Attendance.findOne({userId:req.user.id,month:lastMonth})
-            
-            objectArray=prevUserAttendance.attendance
-            newMonthFlag=true
-
-          }
-        }else{
-          objectArray=UserAttendance.attendance
-        }
-
-        UserAttendance.findOne()
 
         if(status==="checkout"){
-          UserAttendance.attendance.push({ checkIn: new Date().valueOf()});
+
+          Attendance.create({userId:req.user.id,checkIn:new Date().valueOf()})
           user.status="checkin"
           await user.save()
-          await UserAttendance.save()
           return res.status(200).json({"message":"checked in successfully"})
+
+
         }else if(status==="checkin"){
-          console.log("obj array",objectArray)
-          const outTime=objectArray[objectArray.length-1].checkOut=new Date().valueOf()
-          const inTime=objectArray[objectArray.length-1].checkIn
-
-          objectArray[objectArray.length-1].duration=outTime-inTime
-
+          
+          const array=await Attendance.find({userId:req.user.id,date:{$gte: new Date(new Date()-1*60*60*24*1000)}})
+          const objToChange=array[array.length-1]
+          
+          objToChange.checkOut=new Date().valueOf()
+          objToChange.totalDuration=objToChange.checkOut-objToChange.checkIn
           user.status="checkout"
-          newMonthFlag?prevUserAttendance.save():UserAttendance.save()
+          objToChange.save()
           user.save()
           return res.status(200).json({"message":"checked out successfully"})
 

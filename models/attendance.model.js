@@ -11,31 +11,24 @@ const AttendanceSchema = new mongoose.Schema({
     },
     checkIn:{
         type:Number,
-        required:true
     },
     checkOut:{
         type:Number,
-        required:true
     },
     breakIn:{
         type:Number,
-        required:true
     },
     breakOut:{
         type:Number,
-        required:true
     },
     breakDuration:{
         type:Number,
-        required:true
     },
     totalDuration:{
         type:Number,
-        required:true
     },
     netDuration:{
         type:Number,
-        required:true
     }
 })
 
