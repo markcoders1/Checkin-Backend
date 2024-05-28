@@ -6,6 +6,9 @@ import {
     refreshAccessToken,
     changeCurrentPassword,
     updateAccountDetails,
+    test,
+    getUserAttendance,
+    breakUser
 } from "../controllers/user.controller.js";
 import { verifyJWT } from "../middleware/auth.middleware.js";
 
@@ -19,10 +22,16 @@ router.route("/logout").post(verifyJWT, logoutUser)
 
 router.route("/check").post(verifyJWT, checkInOrCheckOut)
 
+router.route("/break").post(verifyJWT, breakUser)
+
 router.route("/update-account").patch(verifyJWT, updateAccountDetails);
 //patch so that the whole is not updated
 
 router.route("/change-password").post(verifyJWT, changeCurrentPassword);
+
+router.route("/getUserAttendance").get(verifyJWT,getUserAttendance)
+
+router.route("/test").post(test)
 // again verifyJWT so that only people who are logged in can access this
 
 

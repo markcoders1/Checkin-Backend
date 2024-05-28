@@ -1,9 +1,11 @@
 import { User } from "../models/user.model.js";
+import { Attendance } from "../models/attendance.model.js";
+
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 
-const logoutUser =async (req, res, next) => {
+export const logoutUser =async (req, res, next) => {
     try {
             await User.findByIdAndUpdate(
                 req.user._id, // req.user will not be accessible without middleware verifyJWT
@@ -36,53 +38,9 @@ ToDo: merge check in and check out apis
 ToDo: have it so that only admins can create users 
 */
 
-// a function that takes two Date() objects and
-// and returns the value of duration between them as String (08:45:34)
-const calculateDuration = (checkInTime, checkOutTime)=>{
-    if (!checkInTime) {
-        throw new Error("no check in time to calculate duration")
-    };
-    if (!checkOutTime) {
-        throw new Error("no check out time to calculate duration")
-    };
 
-    //number of milliseconds between the date object and midnight January 1, 1970 UTC
-    // difference calculate karne k lye dono ki value numbers me chahiye so that we can subtract
 
-    const checkInTimeInMilliSeconds = checkInTime.valueOf();
-    console.log("checkInTimeInMilliSeconds: ", checkInTimeInMilliSeconds);
-
-    const checkOutTimeInMilliSeconds = checkOutTime.valueOf();
-    console.log("checkOutTimeInMilliSeconds",checkOutTimeInMilliSeconds);
-
-    //calculate their difference
-    const durationInMilliseconds = checkOutTimeInMilliSeconds - checkInTimeInMilliSeconds
-    console.log("durationInMilliseconds: ", durationInMilliseconds);
- 
-    // convert the duration from milliseconds to Hours and Minutes string format( "08:56:01" ) 
-    // Convert milliseconds to hours, minutes, and seconds
-    const millisecondsInAnHour = 1000 * 60 * 60;
-    const millisecondsInAMinute = 1000 * 60;
-    const millisecondsInASecond = 1000;
-    
-    const totalHours = Math.floor(durationInMilliseconds / millisecondsInAnHour);
-    const totalMinutes = Math.floor((durationInMilliseconds % millisecondsInAnHour) / millisecondsInAMinute);
-    const totalSeconds = Math.floor((durationInMilliseconds % millisecondsInAMinute) / millisecondsInASecond);
-    
-    // Format hours, minutes, and seconds to be two digits
-    const hoursString = String(totalHours).padStart(2, '0');
-    const minutesString = String(totalMinutes).padStart(2, '0');
-    const secondsString = String(totalSeconds).padStart(2, '0');
-    
-    // Combine hours, minutes, and seconds into a digital clock format
-    const formattedTime = `${hoursString}:${minutesString}:${secondsString}`;
-    
-    console.log(`Formatted Duration: ${formattedTime}`);
-
-    return formattedTime
-}
-
-const generateAccessAndRefreshToken = async (userId) => {
+export const generateAccessAndRefreshToken = async (userId) => {
   // call this method whenever you need to generate access and refresh token,
   // takes userId as parameter, returns the generated AccessToken and refreshToken
 
@@ -107,13 +65,13 @@ const generateAccessAndRefreshToken = async (userId) => {
 };
 
 
-const refreshAccessToken = async (req, res) => {
+export const refreshAccessToken = async (req, res) => {
   try {
     const incomingRefreshToken =
       req.cookies.refreshToken || req.body.refreshToken;
 
     console.log("incomingRefreshToken : ");
-    console.log(incomingRefreshToken);
+    // console.log(incomingRefreshToken);
 
     if (!incomingRefreshToken) {
       throw new Error("unauthorized request");
@@ -124,7 +82,7 @@ const refreshAccessToken = async (req, res) => {
       );
 
       console.log("decodedToken : ");
-      console.log(decodedToken);
+      // console.log(decodedToken);
 
       const user = await User.findById(decodedToken?._id);
 
@@ -162,8 +120,8 @@ const refreshAccessToken = async (req, res) => {
 };
 
 
-
-const loginUser =async (req, res) => {
+//!email not found error not yet implemented
+export const loginUser =async (req, res) => {
     // algorithm
     // 1. req.body se data lao
     // 2. email hai ya nahi check
@@ -181,7 +139,6 @@ const loginUser =async (req, res) => {
      if (!email) {
         throw new Error("Email is required");
      }
-     console.log("logged in Email: ", email);
  
      // 3. database me find karen dono, return jo pehle mila
      const user = await User.findOne({
@@ -230,47 +187,82 @@ const loginUser =async (req, res) => {
    }
 };
 
-const checkInOrCheckOut = async (req,res) =>{
-    try {
-        let user = await User.findById(req.user.id); //get logged in user's details
-        let attendance = user.attendance;
-        const status = user.status;
+export const test=async (req,res)=>{
+  try{
+    const date=new Date()
+    const testItem="hi"
+    console.log(testItem)
+    res.status(200).json({testItem})
+  }catch(err){
+    console.log(err)
+  }
+}
 
-        if (status === "checkout") {
-            const checkinTime = user.attendance.push({ checkIn: new Date()}); 
-            user.status = "checkin"
-            await user.save();
-            return res
-            .status(200)
-            .json({"message":"checked in successfully"});
-        } else if (status === "checkin" || status === "inbreak"){
-            const checkoutTime = attendance[attendance.length - 1].checkOut = new Date();
-            const checkInTime1 = attendance[attendance.length - 1].checkIn;
-            const calculatedDurationLocal = calculateDuration(checkInTime1,checkoutTime);
+//todo check in timer
+//todo monthly get requests
+export const checkInOrCheckOut = async (req,res) =>{
 
-            if (attendance[attendance.length - 1].duration) {
-            throw new Error("Error: value detected inside duration field"); 
-            }
+  try {
+        let user = await User.findById(req.user.id);
+        const status=user.status
 
-            attendance[attendance.length - 1].duration = calculatedDurationLocal;
-          
-            user.status = "checkout" ;
-            
-            user.attendance[user.attendance.length-1]=attendance[attendance.length-1]
-            await user.save();
-            return res
-            .json(
-            {"message":"checked out successfully", user}
-          );
+        
+      
+
+        if(status==="checkout"){
+          // check in
+          Attendance.create({userId:req.user.id,checkIn:new Date().valueOf()})
+          user.status="checkin"
+          await user.save()
+          return res.status(200).json({"message":"checked in successfully"})
 
 
+        }else if(status==="checkin"){
+          //calculate totalDuration and netduration and checkout
+          const array=await Attendance.find({userId:req.user.id,date:{$gte: new Date(new Date()-1*60*60*24*1000)}})
+          const objToChange=array[array.length-1]
+          const duration=(new Date().valueOf())-objToChange.checkIn
+          if(duration<1000*60*60*2){
+            res.status(405).json({message:"Leaving so soon? git back to work"})
+            return;
+          }
 
-        } else {
-            throw new Error("Error: status should only be 'checkin' or 'checkout' or 'inbreak'")
-        }
+          objToChange.checkOut=new Date().valueOf()
+          objToChange.totalDuration=objToChange.checkOut-objToChange.checkIn
 
+          objToChange.netDuration = objToChange.totalDuration - objToChange.breakDuration
+
+
+          user.status="checkout"
+          objToChange.save()
+          user.save()
+          return res.status(200).json({"message":"checked out successfully"})
+
+        }else if(status === "inbreak") {
+          // break out:
+          const array=await Attendance.find({userId:req.user.id,date:{$gte: new Date(new Date()-1*60*60*24*1000)}})
+    
+          //get last object in attendance array
+          let objToChange =array[array.length-1]
+          //put new time value in breakIn which is inside this object
+          objToChange.breakOut=new Date().valueOf() 
+          const breakOutTime = objToChange.breakOut
+          const breakInTime = objToChange.breakIn
+          objToChange.breakDuration = breakOutTime - breakInTime
+          console.log("Break Duration: ", objToChange.breakDuration);
+          user.status = "checkin"
+          //checking out
+          objToChange.checkOut=new Date().valueOf()
+          objToChange.totalDuration=objToChange.checkOut-objToChange.checkIn
+          objToChange.netDuration = objToChange.totalDuration - objToChange.breakDuration
+          user.status="checkout"
+          await user.save();
+          await objToChange.save();
+          return res.json({ message: "break out and checkout Successfully", array });
+        };
 
     } catch (error) {
+      console.log(error)
         res.status(500)
         .json({
             message: "Something went wrong while checkin/checkout operation",
@@ -278,73 +270,95 @@ const checkInOrCheckOut = async (req,res) =>{
         })
     }
 }
-// const checkinUser = async(req,res)=>{
+const breakUser = async (req, res) => {
+  try {
+    //  ALGORITHM:
+    //when this function is called through /break route    
+    //IF status === "checkout" return with error "Must be checked in to access break"   
+    //IF status === "checkin" we note a break start time and change status to "inbreak"                  
+    //IF status === "inbreak" then note time and calculate duration of break and make user status back to "checkin"
+    let user = await User.findById(req.user.id); 
+    
+    const array=await Attendance.find({userId:req.user.id,date:{$gte: new Date(new Date()-1*60*60*24*1000)}})
+    const status = user.status;
+    console.log("Status: ", user.status);
 
-//     try {
-//         const user = await User.findById(req.user.id); //get logged in user 
-//         const checkinTime = user.attendance.push({ checkIn: new Date() }); // add current time object to attendance check in
+    if (status === "checkout") {
+      return res.json({
+        message: "User Must be Checked In to access Break",
+        status,
+      });
+    }
 
-//     console.log(checkinTime); // remove when testing done
-
-//     await user.save();
-//     return res.json({"message":"checked in successfully"});
-//   } catch (error) {
-//     res.status(500).json({
-//       message:"Server error, Could not check in",
-//       error:error.message
-//     })
-//   }
-// };
-
-// const checkoutUser = async (req, res) => {
-//   try {
-//     const user = await User.findById(req.user.id);
-
-//     //user ki attendance ki details lelo
-//     const attendance = user.attendance;
-
-//     console.log("attendance: ", attendance); // remove when testing is done
-
-
-
-//     //adding check out time to user database
-//     attendance[attendance.length - 1].checkOut = new Date();
-
-//     console.log("CHECKOUT TIME : ", checkoutTime); //remove this when testing is done
-
-//     // read the checkin value from attendance so we can calculate duration
-//     const checkInTime1 = attendance[attendance.length - 1].checkIn;
-
-//     // use function
-//     const calculatedDurationLocal = calculateDuration(
-//       checkInTime1,
-//       checkoutTime
-//     );
-
-//     //now add this calculated Duration string to user
-//     if (attendance[attendance.length - 1].duration) {
-//       throw new Error("Error: value detected inside duration field");
-//     }
-
-//         attendance[attendance.length - 1].duration = calculatedDurationLocal
-//         console.log("Successfully Added Duration:  ",calculatedDurationLocal); //remove this when testing is done
+    
+    if (status === "checkin") {
+        //break in:
+      
+        //get last object in attendance array
+        const objToChange =array[array.length-1]
+        //put new time value in breakIn which is inside this object
+        objToChange.breakIn = new Date().valueOf()
         
+        //change status to inbreak
+        user.status = "inbreak";
+        //save 
+        await user.save();
+        await objToChange.save();
+        return res.status(200).json({ message: "break in successfully", array});
+
+
+
+      } else if(status === "inbreak") {
+        // break out:
+
+        //get last object in attendance array
+        let objToChange =array[array.length-1]
+        //put new time value in breakIn which is inside this object
         
-//         await user.save();
-//         return res
-//         .json(
-//             {"message":"checked out successfully"}
-//         );
-//     } catch (error) {
-//       res.status(500).json({
-//         message:"Server Error: Could not Check out ",
-//         error:error.message
-//       })
-//     }
+        objToChange.breakOut=new Date().valueOf() 
+        const breakOutTime = objToChange.breakOut
+        const breakInTime = objToChange.breakIn
+        objToChange.breakDuration = (breakOutTime - breakInTime) + objToChange.breakDuration
+        console.log("Break Duration: ", objToChange.breakDuration);
+        user.status = "checkin"
+        await user.save();
+        await objToChange.save();
+        return res.json({ message: "break out Successfully", array });
+      }
+    
+  } catch (error) {
+    res.status(500).json({
+      message: "Something went wrong in Break function",
+      error,
+    });
+  }
+};
 
-// };
 
-const changeCurrentPassword =async (req, res) => {
+
+export const getUserAttendance=async (req,res)=>{
+  try{
+    const date=new Date()
+    let {from,to}=req.query
+
+    if(!from){
+      from =new Date(date.getFullYear(), date.getMonth(), 1).valueOf();
+    }
+    if(!to){
+      to=from+2629746000
+      if(to>date.valueOf()){
+        to=date.valueOf()
+      }
+    }
+    console.log(new Date(from))
+    const result= await Attendance.find({userId:req.user.id,date:{$gte:from,$lte:to}})
+    res.status(200).json({result})
+  }catch(err){
+    console.log(err)
+  }
+}
+
+export const changeCurrentPassword =async (req, res) => {
     try {
         const { oldPassword, newPassword } = req.body;
     
@@ -375,7 +389,7 @@ const changeCurrentPassword =async (req, res) => {
     }
 };
 
-const updateAccountDetails =async (req, res) => {
+export const updateAccountDetails =async (req, res) => {
 try {
         const { fullName, email } = req.body; 
         if (!fullName || !email) {
@@ -404,14 +418,4 @@ try {
       error
     })
 }
-};
-
-
-export {
-  loginUser,
-  logoutUser,
-  checkInOrCheckOut,
-  refreshAccessToken,
-  changeCurrentPassword,
-  updateAccountDetails,
 };

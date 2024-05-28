@@ -65,10 +65,6 @@ const userSchema = new mongoose.Schema({
         lowercase: true,
         trim: true,
         default: "checkout"
-    },
-    attendance:{
-        type:Array,
-        default:[]
     }
 },
 { timestamps: true }
