@@ -6,8 +6,8 @@ const AttendanceSchema = new mongoose.Schema({
         required:true
     },
     date:{
-        type:Date,
-        default:new Date()
+        type:Number,
+        default:new Date().valueOf()
     },
     checkIn:{
         type:Number,

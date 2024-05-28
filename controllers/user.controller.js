@@ -5,7 +5,7 @@ import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 
-const logoutUser =async (req, res, next) => {
+export const logoutUser =async (req, res, next) => {
     try {
             await User.findByIdAndUpdate(
                 req.user._id, // req.user will not be accessible without middleware verifyJWT
@@ -38,53 +38,9 @@ ToDo: merge check in and check out apis
 ToDo: have it so that only admins can create users 
 */
 
-// a function that takes two Date() objects and
-// and returns the value of duration between them as String (08:45:34)
-const calculateDuration = (checkInTime, checkOutTime)=>{
-    if (!checkInTime) {
-        throw new Error("no check in time to calculate duration")
-    };
-    if (!checkOutTime) {
-        throw new Error("no check out time to calculate duration")
-    };
 
-    //number of milliseconds between the date object and midnight January 1, 1970 UTC
-    // difference calculate karne k lye dono ki value numbers me chahiye so that we can subtract
 
-    const checkInTimeInMilliSeconds = checkInTime.valueOf();
-    console.log("checkInTimeInMilliSeconds: ", checkInTimeInMilliSeconds);
-
-    const checkOutTimeInMilliSeconds = checkOutTime.valueOf();
-    console.log("checkOutTimeInMilliSeconds",checkOutTimeInMilliSeconds);
-
-    //calculate their difference
-    const durationInMilliseconds = checkOutTimeInMilliSeconds - checkInTimeInMilliSeconds
-    console.log("durationInMilliseconds: ", durationInMilliseconds);
- 
-    // convert the duration from milliseconds to Hours and Minutes string format( "08:56:01" ) 
-    // Convert milliseconds to hours, minutes, and seconds
-    const millisecondsInAnHour = 1000 * 60 * 60;
-    const millisecondsInAMinute = 1000 * 60;
-    const millisecondsInASecond = 1000;
-    
-    const totalHours = Math.floor(durationInMilliseconds / millisecondsInAnHour);
-    const totalMinutes = Math.floor((durationInMilliseconds % millisecondsInAnHour) / millisecondsInAMinute);
-    const totalSeconds = Math.floor((durationInMilliseconds % millisecondsInAMinute) / millisecondsInASecond);
-    
-    // Format hours, minutes, and seconds to be two digits
-    const hoursString = String(totalHours).padStart(2, '0');
-    const minutesString = String(totalMinutes).padStart(2, '0');
-    const secondsString = String(totalSeconds).padStart(2, '0');
-    
-    // Combine hours, minutes, and seconds into a digital clock format
-    const formattedTime = `${hoursString}:${minutesString}:${secondsString}`;
-    
-    console.log(`Formatted Duration: ${formattedTime}`);
-
-    return formattedTime
-}
-
-const generateAccessAndRefreshToken = async (userId) => {
+export const generateAccessAndRefreshToken = async (userId) => {
   // call this method whenever you need to generate access and refresh token,
   // takes userId as parameter, returns the generated AccessToken and refreshToken
 
@@ -109,13 +65,13 @@ const generateAccessAndRefreshToken = async (userId) => {
 };
 
 
-const refreshAccessToken = async (req, res) => {
+export const refreshAccessToken = async (req, res) => {
   try {
     const incomingRefreshToken =
       req.cookies.refreshToken || req.body.refreshToken;
 
     console.log("incomingRefreshToken : ");
-    console.log(incomingRefreshToken);
+    // console.log(incomingRefreshToken);
 
     if (!incomingRefreshToken) {
       throw new Error("unauthorized request");
@@ -126,7 +82,7 @@ const refreshAccessToken = async (req, res) => {
       );
 
       console.log("decodedToken : ");
-      console.log(decodedToken);
+      // console.log(decodedToken);
 
       const user = await User.findById(decodedToken?._id);
 
@@ -165,7 +121,7 @@ const refreshAccessToken = async (req, res) => {
 
 
 //!email not found error not yet implemented
-const loginUser =async (req, res) => {
+export const loginUser =async (req, res) => {
     // algorithm
     // 1. req.body se data lao
     // 2. email hai ya nahi check
@@ -232,8 +188,9 @@ const loginUser =async (req, res) => {
    }
 };
 
-const test=async (req,res)=>{
+export const test=async (req,res)=>{
   try{
+    const date=new Date()
     const testItem="hi"
     console.log(testItem)
     res.status(200).json({testItem})
@@ -242,8 +199,10 @@ const test=async (req,res)=>{
   }
 }
 
-//! month end edge case
-const checkInOrCheckOut = async (req,res) =>{
+//todo check in timer
+//todo monthly get requests
+export const checkInOrCheckOut = async (req,res) =>{
+
   try {
         let user = await User.findById(req.user.id);
         const status=user.status
@@ -258,12 +217,18 @@ const checkInOrCheckOut = async (req,res) =>{
 
 
         }else if(status==="checkin"){
-          
+
           const array=await Attendance.find({userId:req.user.id,date:{$gte: new Date(new Date()-1*60*60*24*1000)}})
           const objToChange=array[array.length-1]
-          
+          const duration=(new Date().valueOf())-objToChange.checkIn
+          if(duration<1000*60*60*2){
+            res.status(405).json({message:"Leaving so soon? git back to work"})
+            return;
+          }
+
           objToChange.checkOut=new Date().valueOf()
           objToChange.totalDuration=objToChange.checkOut-objToChange.checkIn
+
           user.status="checkout"
           objToChange.save()
           user.save()
@@ -282,7 +247,29 @@ const checkInOrCheckOut = async (req,res) =>{
     }
 }
 
-const changeCurrentPassword =async (req, res) => {
+export const getUserAttendance=async (req,res)=>{
+  try{
+    const date=new Date()
+    let {from,to}=req.query
+
+    if(!from){
+      from =new Date(date.getFullYear(), date.getMonth(), 1).valueOf();
+    }
+    if(!to){
+      to=from+2629746000
+      if(to>date.valueOf()){
+        to=date.valueOf()
+      }
+    }
+    console.log(new Date(from))
+    const result= await Attendance.find({userId:req.user.id,date:{$gte:from,$lte:to}})
+    res.status(200).json({result})
+  }catch(err){
+    console.log(err)
+  }
+}
+
+export const changeCurrentPassword =async (req, res) => {
     try {
         const { oldPassword, newPassword } = req.body;
     
@@ -313,7 +300,7 @@ const changeCurrentPassword =async (req, res) => {
     }
 };
 
-const updateAccountDetails =async (req, res) => {
+export const updateAccountDetails =async (req, res) => {
 try {
         const { fullName, email } = req.body; 
         if (!fullName || !email) {
@@ -342,15 +329,4 @@ try {
       error
     })
 }
-};
-
-
-export {
-  loginUser,
-  logoutUser,
-  checkInOrCheckOut,
-  refreshAccessToken,
-  changeCurrentPassword,
-  updateAccountDetails,
-  test
 };

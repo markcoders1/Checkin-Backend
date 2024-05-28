@@ -23,3 +23,27 @@ export const registerUser =async (req, res) => {
     res.json({error})
   }
 };
+
+export const getUserAttendance=async (req,res)=>{
+  try{
+    const date=new Date()
+    let {from,to,userId}=req.query
+
+    if(!userId){
+      return res.status(400).json({message:"please enter an ID"})
+    }
+    if(!from){
+      from =new Date(date.getFullYear(), date.getMonth(), 1).valueOf();
+    }
+    if(!to){
+      to=from+2629746000
+      if(to>date.valueOf()){
+        to=date.valueOf()
+      }
+    }
+    const result= await Attendance.find({userId:req.user.id,date:{$gte:from,$lte:to}})
+    res.status(200).json({result})
+  }catch(err){
+    console.log(err)
+  }
+}

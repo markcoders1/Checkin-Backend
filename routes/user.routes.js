@@ -6,7 +6,8 @@ import {
     refreshAccessToken,
     changeCurrentPassword,
     updateAccountDetails,
-    test
+    test,
+    getUserAttendance
 } from "../controllers/user.controller.js";
 import { verifyJWT } from "../middleware/auth.middleware.js";
 
@@ -24,6 +25,8 @@ router.route("/update-account").patch(verifyJWT, updateAccountDetails);
 //patch so that the whole is not updated
 
 router.route("/change-password").post(verifyJWT, changeCurrentPassword);
+
+router.route("/getUserAttendance").get(verifyJWT,getUserAttendance)
 
 router.route("/test").post(test)
 // again verifyJWT so that only people who are logged in can access this
