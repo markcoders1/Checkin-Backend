@@ -23,6 +23,7 @@ const AttendanceSchema = new mongoose.Schema({
     },
     breakDuration:{
         type:Number,
+        default: 0
     },
     totalDuration:{
         type:Number,

@@ -7,7 +7,8 @@ import {
     changeCurrentPassword,
     updateAccountDetails,
     test,
-    getUserAttendance
+    getUserAttendance,
+    breakUser
 } from "../controllers/user.controller.js";
 import { verifyJWT } from "../middleware/auth.middleware.js";
 
@@ -20,6 +21,8 @@ router.route("/login").post(loginUser)
 router.route("/logout").post(verifyJWT, logoutUser)
 
 router.route("/check").post(verifyJWT, checkInOrCheckOut)
+
+router.route("/break").post(verifyJWT, breakUser)
 
 router.route("/update-account").patch(verifyJWT, updateAccountDetails);
 //patch so that the whole is not updated

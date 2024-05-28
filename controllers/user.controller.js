@@ -139,7 +139,6 @@ export const loginUser =async (req, res) => {
      if (!email) {
         throw new Error("Email is required");
      }
-     console.log("logged in Email: ", email);
  
      // 3. database me find karen dono, return jo pehle mila
      const user = await User.findOne({
@@ -207,9 +206,11 @@ export const checkInOrCheckOut = async (req,res) =>{
         let user = await User.findById(req.user.id);
         const status=user.status
 
+        
+      
 
         if(status==="checkout"){
-
+          // check in
           Attendance.create({userId:req.user.id,checkIn:new Date().valueOf()})
           user.status="checkin"
           await user.save()
@@ -217,7 +218,7 @@ export const checkInOrCheckOut = async (req,res) =>{
 
 
         }else if(status==="checkin"){
-
+          //calculate totalDuration and netduration and checkout
           const array=await Attendance.find({userId:req.user.id,date:{$gte: new Date(new Date()-1*60*60*24*1000)}})
           const objToChange=array[array.length-1]
           const duration=(new Date().valueOf())-objToChange.checkIn
@@ -229,13 +230,36 @@ export const checkInOrCheckOut = async (req,res) =>{
           objToChange.checkOut=new Date().valueOf()
           objToChange.totalDuration=objToChange.checkOut-objToChange.checkIn
 
+          objToChange.netDuration = objToChange.totalDuration - objToChange.breakDuration
+
+
           user.status="checkout"
           objToChange.save()
           user.save()
           return res.status(200).json({"message":"checked out successfully"})
 
-        }
-
+        }else if(status === "inbreak") {
+          // break out:
+          const array=await Attendance.find({userId:req.user.id,date:{$gte: new Date(new Date()-1*60*60*24*1000)}})
+    
+          //get last object in attendance array
+          let objToChange =array[array.length-1]
+          //put new time value in breakIn which is inside this object
+          objToChange.breakOut=new Date().valueOf() 
+          const breakOutTime = objToChange.breakOut
+          const breakInTime = objToChange.breakIn
+          objToChange.breakDuration = breakOutTime - breakInTime
+          console.log("Break Duration: ", objToChange.breakDuration);
+          user.status = "checkin"
+          //checking out
+          objToChange.checkOut=new Date().valueOf()
+          objToChange.totalDuration=objToChange.checkOut-objToChange.checkIn
+          objToChange.netDuration = objToChange.totalDuration - objToChange.breakDuration
+          user.status="checkout"
+          await user.save();
+          await objToChange.save();
+          return res.json({ message: "break out and checkout Successfully", array });
+        };
 
     } catch (error) {
       console.log(error)
@@ -246,6 +270,71 @@ export const checkInOrCheckOut = async (req,res) =>{
         })
     }
 }
+const breakUser = async (req, res) => {
+  try {
+    //  ALGORITHM:
+    //when this function is called through /break route    
+    //IF status === "checkout" return with error "Must be checked in to access break"   
+    //IF status === "checkin" we note a break start time and change status to "inbreak"                  
+    //IF status === "inbreak" then note time and calculate duration of break and make user status back to "checkin"
+    let user = await User.findById(req.user.id); 
+    
+    const array=await Attendance.find({userId:req.user.id,date:{$gte: new Date(new Date()-1*60*60*24*1000)}})
+    const status = user.status;
+    console.log("Status: ", user.status);
+
+    if (status === "checkout") {
+      return res.json({
+        message: "User Must be Checked In to access Break",
+        status,
+      });
+    }
+
+    
+    if (status === "checkin") {
+        //break in:
+      
+        //get last object in attendance array
+        const objToChange =array[array.length-1]
+        //put new time value in breakIn which is inside this object
+        objToChange.breakIn = new Date().valueOf()
+        
+        //change status to inbreak
+        user.status = "inbreak";
+        //save 
+        await user.save();
+        await objToChange.save();
+        return res.status(200).json({ message: "break in successfully", array});
+
+
+
+      } else if(status === "inbreak") {
+        // break out:
+
+        //get last object in attendance array
+        let objToChange =array[array.length-1]
+        //put new time value in breakIn which is inside this object
+        
+        objToChange.breakOut=new Date().valueOf() 
+        const breakOutTime = objToChange.breakOut
+        const breakInTime = objToChange.breakIn
+        objToChange.breakDuration = (breakOutTime - breakInTime) + objToChange.breakDuration
+        console.log("Break Duration: ", objToChange.breakDuration);
+        user.status = "checkin"
+        await user.save();
+        await objToChange.save();
+        return res.json({ message: "break out Successfully", array });
+      }
+    
+  } catch (error) {
+    res.status(500).json({
+      message: "Something went wrong in Break function",
+      error,
+    });
+  }
+};
+
+
 
 export const getUserAttendance=async (req,res)=>{
   try{
