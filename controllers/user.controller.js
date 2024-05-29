@@ -270,7 +270,7 @@ export const checkInOrCheckOut = async (req,res) =>{
         })
     }
 }
-const breakUser = async (req, res) => {
+export const breakUser = async (req, res) => {
   try {
     //  ALGORITHM:
     //when this function is called through /break route    
