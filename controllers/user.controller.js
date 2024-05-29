@@ -137,6 +137,7 @@ export const loginUser =async (req, res) => {
 
 export const test=async (req,res)=>{
   try{
+    console.log(req.query.id);
     const date=new Date()
     const testItem="hi"
     console.log(testItem)
@@ -370,3 +371,4 @@ export const getStatus=async (req,res)=>{
     res.status(400).json({error})
   }
 }
+
