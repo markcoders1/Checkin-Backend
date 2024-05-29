@@ -8,4 +8,8 @@ router.route("/register").post(verifyJWT,verifyAdmin,registerUser)
 
 router.route("/getUserAttendance").get(verifyJWT,verifyAdmin,getUserAttendance)
 
+router.route("/getAllUsers").get(verifyJWT,verifyAdmin)
+
+router.route("/getUser").get(verifyJWT,verifyAdmin)
+
 export default router

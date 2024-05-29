@@ -8,7 +8,8 @@ import {
     updateAccountDetails,
     test,
     getUserAttendance,
-    breakUser
+    breakUser,
+    getStatus
 } from "../controllers/user.controller.js";
 import { verifyJWT } from "../middleware/auth.middleware.js";
 
@@ -30,6 +31,10 @@ router.route("/update-account").patch(verifyJWT, updateAccountDetails);
 router.route("/change-password").post(verifyJWT, changeCurrentPassword);
 
 router.route("/getUserAttendance").get(verifyJWT,getUserAttendance)
+
+router.route("/getUser").get(verifyJWT)
+
+router.route("/getStatus").get(verifyJWT,getStatus)
 
 router.route("/test").post(test)
 // again verifyJWT so that only people who are logged in can access this
