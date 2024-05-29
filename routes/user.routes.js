@@ -9,7 +9,8 @@ import {
     test,
     getUserAttendance,
     breakUser,
-    getStatus
+    getStatus,
+    getUser
 } from "../controllers/user.controller.js";
 import { verifyJWT } from "../middleware/auth.middleware.js";
 
@@ -26,18 +27,16 @@ router.route("/check").post(verifyJWT, checkInOrCheckOut)
 router.route("/break").post(verifyJWT, breakUser)
 
 router.route("/update-account").patch(verifyJWT, updateAccountDetails);
-//patch so that the whole is not updated
 
 router.route("/change-password").post(verifyJWT, changeCurrentPassword);
 
 router.route("/getUserAttendance").get(verifyJWT,getUserAttendance)
 
-router.route("/getUser").get(verifyJWT)
+router.route("/getUser").get(verifyJWT,getUser)
 
 router.route("/getStatus").get(verifyJWT,getStatus)
 
 router.route("/test").post(test)
-// again verifyJWT so that only people who are logged in can access this
 
 
 export default router;
