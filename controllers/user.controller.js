@@ -156,7 +156,7 @@ export const loginUser =async (req, res) => {
  
      // 5.
      const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
-         user._id
+        user._id
      );
  
      // 6. cookie
@@ -206,15 +206,12 @@ export const checkInOrCheckOut = async (req,res) =>{
         let user = await User.findById(req.user.id);
         const status=user.status
 
-        
-      
-
         if(status==="checkout"){
           // check in
           Attendance.create({userId:req.user.id,checkIn:new Date().valueOf()})
           user.status="checkin"
           await user.save()
-          return res.status(200).json({"message":"checked in successfully"})
+          return res.status(200).json({"message":"checked in successfully","status":user.status})
 
 
         }else if(status==="checkin"){
@@ -223,7 +220,7 @@ export const checkInOrCheckOut = async (req,res) =>{
           const objToChange=array[array.length-1]
           const duration=(new Date().valueOf())-objToChange.checkIn
           if(duration<1000*60*60*2){
-            res.status(405).json({message:"Leaving so soon? git back to work"})
+            res.status(403).json({message:"Please consult Management about leaving early"})
             return;
           }
 
@@ -236,7 +233,7 @@ export const checkInOrCheckOut = async (req,res) =>{
           user.status="checkout"
           objToChange.save()
           user.save()
-          return res.status(200).json({"message":"checked out successfully"})
+          return res.status(200).json({"message":"checked out successfully","status":user.status})
 
         }else if(status === "inbreak") {
           // break out:
@@ -253,12 +250,19 @@ export const checkInOrCheckOut = async (req,res) =>{
           user.status = "checkin"
           //checking out
           objToChange.checkOut=new Date().valueOf()
-          objToChange.totalDuration=objToChange.checkOut-objToChange.checkIn
+          const duration = objToChange.checkOut-objToChange.checkIn
+
+          if(duration<1000*60*60*2){
+            res.status(403).json({message:"Please consult Management about leaving early"})
+            return;
+          }
+
+          objToChange.totalDuration= duration
           objToChange.netDuration = objToChange.totalDuration - objToChange.breakDuration
           user.status="checkout"
           await user.save();
           await objToChange.save();
-          return res.json({ message: "break out and checkout Successfully", array });
+          return res.json({ message: "break out and checkout Successfully", "status":user.status });
         };
 
     } catch (error) {
@@ -304,7 +308,7 @@ export const breakUser = async (req, res) => {
         //save 
         await user.save();
         await objToChange.save();
-        return res.status(200).json({ message: "break in successfully", array});
+        return res.status(200).json({ message: "break in successfully", objToChange,"status":user.status});
 
 
 
@@ -323,7 +327,7 @@ export const breakUser = async (req, res) => {
         user.status = "checkin"
         await user.save();
         await objToChange.save();
-        return res.json({ message: "break out Successfully", array });
+        return res.json({ message: "break out Successfully", objToChange,"status":user.status });
       }
     
   } catch (error) {
@@ -419,3 +423,15 @@ try {
     })
 }
 };
+
+export const getStatus=async (req,res)=>{
+  try{
+    console.log(req.user.id)
+    const user=await User.findById(req.user.id)
+    console.log(user.status)
+    return res.status(200).json({"status":user.status})
+  }catch(error){
+    console.log(error);
+    res.status(400).json({error})
+  }
+}

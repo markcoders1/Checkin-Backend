@@ -1,4 +1,5 @@
 import { User } from "../models/user.model.js";
+import { Attendance } from "../models/attendance.model.js";
 
 export const registerUser =async (req, res) => {
   try{
