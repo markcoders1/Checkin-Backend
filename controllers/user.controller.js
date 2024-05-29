@@ -166,10 +166,10 @@ export const checkInOrCheckOut = async (req,res) =>{
           const array=await Attendance.find({userId:req.user.id,date:{$gte: new Date(new Date()-1*60*60*24*1000)}})
           const objToChange=array[array.length-1]
           const duration=(new Date().valueOf())-objToChange.checkIn
-          if(duration<1000*60*60*2){
-            res.status(403).json({message:"Please consult Management about leaving early"})
-            return;
-          }
+          // if(duration<1000*60*60*2){
+          //   res.status(403).json({message:"Please consult Management about leaving early"})
+          //   return;
+          // }
 
           objToChange.checkOut=new Date().valueOf()
           objToChange.totalDuration=objToChange.checkOut-objToChange.checkIn
@@ -199,10 +199,10 @@ export const checkInOrCheckOut = async (req,res) =>{
           objToChange.checkOut=new Date().valueOf()
           const duration = objToChange.checkOut-objToChange.checkIn
 
-          if(duration<1000*60*60*2){
-            res.status(403).json({message:"Please consult Management about leaving early"})
-            return;
-          }
+          // if(duration<1000*60*60*2){
+          //   res.status(403).json({message:"Please consult Management about leaving early"})
+          //   return;
+          // }
 
           objToChange.totalDuration= duration
           objToChange.netDuration = objToChange.totalDuration - objToChange.breakDuration
@@ -332,23 +332,6 @@ export const changeCurrentPassword =async (req, res) => {
     }
 };
 
-export const updateAccountDetails =async (req, res) => {
-  try {
-          const { fullName, email } = req.body; 
-          if (!fullName || !email) {
-              throw new Error("All fields are required");
-          }
-        
-          const user = await User.findByIdAndUpdate(req.user?._id,{$set: {fullName: fullName,email: email}},{ new: true }).select("-password");
-        
-          return res.status(200).json({"message":"Account details updated successfully",user});
-  } catch (error) {
-
-      res.status(500).json({
-        error
-      })
-  }
-};
 
 export const getUser=async (req,res)=>{
   try{

@@ -5,7 +5,6 @@ import {
     logoutUser,
     refreshAccessToken,
     changeCurrentPassword,
-    updateAccountDetails,
     test,
     getUserAttendance,
     breakUser,
@@ -25,8 +24,6 @@ router.route("/logout").post(verifyJWT, logoutUser)
 router.route("/check").post(verifyJWT, checkInOrCheckOut)
 
 router.route("/break").post(verifyJWT, breakUser)
-
-router.route("/update-account").patch(verifyJWT, updateAccountDetails);
 
 router.route("/change-password").post(verifyJWT, changeCurrentPassword);
 
