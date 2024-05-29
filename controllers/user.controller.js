@@ -1,23 +1,10 @@
 import { User } from "../models/user.model.js";
 import { Attendance } from "../models/attendance.model.js";
-
 import jwt from "jsonwebtoken";
-import mongoose from "mongoose";
-import bcrypt from "bcrypt";
 
 export const logoutUser =async (req, res, next) => {
     try {
-            await User.findByIdAndUpdate(
-                req.user._id, // req.user will not be accessible without middleware verifyJWT
-                {
-                    $set: {
-                        refreshToken: undefined,
-                    },
-                },
-                {
-                    new: true,
-                }
-            );
+            await User.findByIdAndUpdate(req.user._id,{$set: {refreshToken: undefined}},{new: true});
             const options = {
                 httpOnly: true,
                 secure: true,
@@ -31,30 +18,18 @@ export const logoutUser =async (req, res, next) => {
             res.json({error})
     }
 };  
-// a function that takes two Date() objects and 
-/*
-ToDo: change user schema to have month-wise object
-ToDo: merge check in and check out apis
-ToDo: have it so that only admins can create users 
-*/
 
 
 
 export const generateAccessAndRefreshToken = async (userId) => {
-  // call this method whenever you need to generate access and refresh token,
-  // takes userId as parameter, returns the generated AccessToken and refreshToken
 
   try {
-    const user = await User.findById(userId); // database se is ID ka user nikalo
+    const user = await User.findById(userId); 
     const accessToken = user.generateAccessToken();
     const refreshToken = user.generateRefreshToken();
 
-    // User.model.js me jo refreshToken hai usme daldo generated refresh token
     user.refreshToken = refreshToken;
-    await user.save({ validateBeforeSave: false }); // save bhi karlo changes
-    // validate before save = false because otherwise password validate hoga,
-    // required field hai user.model.js me password
-    // aur yahan hamne koi password ni diya, validate hota to error ata
+    await user.save({ validateBeforeSave: false });
 
     return { accessToken, refreshToken };
   } catch (error) {
@@ -67,34 +42,21 @@ export const generateAccessAndRefreshToken = async (userId) => {
 
 export const refreshAccessToken = async (req, res) => {
   try {
-    const incomingRefreshToken =
-      req.cookies.refreshToken || req.body.refreshToken;
-
-    console.log("incomingRefreshToken : ");
-    // console.log(incomingRefreshToken);
+    const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken;
 
     if (!incomingRefreshToken) {
-      throw new Error("unauthorized request");
+      return res.status(400).json({message:"no refresh token"})
     }
-      const decodedToken = jwt.verify(
-        incomingRefreshToken,
-        process.env.REFRESH_TOKEN_SECRET
-      );
-
-      console.log("decodedToken : ");
-      // console.log(decodedToken);
+      const decodedToken = jwt.verify(incomingRefreshToken,process.env.REFRESH_TOKEN_SECRET);
 
       const user = await User.findById(decodedToken?._id);
 
-      console.log("user : ");
-      console.log(user);
-
       if (!user) {
-        throw new Error("Error: Invalid refresh token");
+        return res.status(400).json({message:"user not found"})
       }
 
       if (incomingRefreshToken !== user?.refreshToken) {
-        throw new Error("Refresh token is expired or used");
+        return res.status(400).json({message:"refresh token is expired or used"})
       }
 
       const options = {
@@ -122,50 +84,36 @@ export const refreshAccessToken = async (req, res) => {
 
 //!email not found error not yet implemented
 export const loginUser =async (req, res) => {
-    // algorithm
-    // 1. req.body se data lao
-    // 2. email hai ya nahi check
-    // 3. find the user
-    // 3.5 return error if cant find the user
-    // 4. password check
-    // 5. generate and send access and refresh token
-    // 6. send cookie
 
-    // 1.
    try {
      const { email, password } = req.body;
  
-     // 2.
      if (!email) {
-        throw new Error("Email is required");
+      return res.status(400).json({message:"please enter an email"})
+     }else if(!password){
+      return res.status(400).json({message:"please enter a password"})
      }
  
-     // 3. database me find karen dono, return jo pehle mila
-     const user = await User.findOne({
-        $or: [{ email }],
-     });
+     const user = await User.findOne({email:email});
  
-     // 3.5 agar database me nahi mila matlab is username/email ka koi user database me nahi hai
-     if (!user) throw new Error("Failed to login, User with this Email does not exist");
+     if (!user) {
+      return res.status(400).json({message:"user not found"})
+     }
  
-     // 4
      const isPasswordValid = await user.isPasswordCorrect(password);
      if (!isPasswordValid) {
-         throw new Error("Invalid Password");
+      return res.status(400).json({message:"email or password incorrect"})
      }
  
-     // 5.
      const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
         user._id
      );
  
-     // 6. cookie
  
      const loggedInUser = await User.findById(user._id).select(
          "-password -refreshToken"
      );
  
-     // cookies bhejte waqt uske kuch options design karte parte hain (object hota hai)
      const options = {
          httpOnly: true,
          secure: true,
@@ -189,6 +137,7 @@ export const loginUser =async (req, res) => {
 
 export const test=async (req,res)=>{
   try{
+    console.log(req.query.id);
     const date=new Date()
     const testItem="hi"
     console.log(testItem)
@@ -198,8 +147,6 @@ export const test=async (req,res)=>{
   }
 }
 
-//todo check in timer
-//todo monthly get requests
 export const checkInOrCheckOut = async (req,res) =>{
 
   try {
@@ -219,10 +166,10 @@ export const checkInOrCheckOut = async (req,res) =>{
           const array=await Attendance.find({userId:req.user.id,date:{$gte: new Date(new Date()-1*60*60*24*1000)}})
           const objToChange=array[array.length-1]
           const duration=(new Date().valueOf())-objToChange.checkIn
-          if(duration<1000*60*60*2){
-            res.status(403).json({message:"Please consult Management about leaving early"})
-            return;
-          }
+          // if(duration<1000*60*60*2){
+          //   res.status(403).json({message:"Please consult Management about leaving early"})
+          //   return;
+          // }
 
           objToChange.checkOut=new Date().valueOf()
           objToChange.totalDuration=objToChange.checkOut-objToChange.checkIn
@@ -252,10 +199,10 @@ export const checkInOrCheckOut = async (req,res) =>{
           objToChange.checkOut=new Date().valueOf()
           const duration = objToChange.checkOut-objToChange.checkIn
 
-          if(duration<1000*60*60*2){
-            res.status(403).json({message:"Please consult Management about leaving early"})
-            return;
-          }
+          // if(duration<1000*60*60*2){
+          //   res.status(403).json({message:"Please consult Management about leaving early"})
+          //   return;
+          // }
 
           objToChange.totalDuration= duration
           objToChange.netDuration = objToChange.totalDuration - objToChange.breakDuration
@@ -276,11 +223,6 @@ export const checkInOrCheckOut = async (req,res) =>{
 }
 export const breakUser = async (req, res) => {
   try {
-    //  ALGORITHM:
-    //when this function is called through /break route    
-    //IF status === "checkout" return with error "Must be checked in to access break"   
-    //IF status === "checkin" we note a break start time and change status to "inbreak"                  
-    //IF status === "inbreak" then note time and calculate duration of break and make user status back to "checkin"
     let user = await User.findById(req.user.id); 
     
     const array=await Attendance.find({userId:req.user.id,date:{$gte: new Date(new Date()-1*60*60*24*1000)}})
@@ -364,27 +306,24 @@ export const getUserAttendance=async (req,res)=>{
 
 export const changeCurrentPassword =async (req, res) => {
     try {
+      
         const { oldPassword, newPassword } = req.body;
-    
-        //pehle current user lo jo already logged in hai
-        //login k waqt auth middleware me data gya hoga uska (req.user)
+        if (!oldPassword||!newPassword){
+          return res.status(400).json({message:"incomplete data"})
+        }
+
         const user = await User.findById(req.user?._id);
     
-        //hamare pas user schema mein aik method hai isPasswordCorrect jo true ya falsa return karta hai
     
-        const isPasswordCorrect = await user.isPasswordCorrect(oldPassword); // save this true/false value in a variable
-    
+        const isPasswordCorrect = await user.isPasswordCorrect(oldPassword); 
         if (!isPasswordCorrect) {
-            throw new Error("Old Password is not correct");
+          return res.status(400).json({message:"password is incorrect"})
         }
-        // if isPasswordCorrect = true to is line pe ayega
-        user.password = newPassword; // set newPassword, this only sets it and does not save it
+        user.password = newPassword;
     
         await user.save({ validateBeforeSave: false });
-    
-        return res
-            .status(200)
-            .json({"message":"password changed successfully"});
+        return res.status(200).json({"message":"password changed successfully"});
+
     } catch (error) {
         res.status().json({
           message:"Server Error: could not change password",
@@ -393,36 +332,16 @@ export const changeCurrentPassword =async (req, res) => {
     }
 };
 
-export const updateAccountDetails =async (req, res) => {
-try {
-        const { fullName, email } = req.body; 
-        if (!fullName || !email) {
-            throw new Error("All fields are required");
-        }
-    
-        const user = await User.findByIdAndUpdate(
-            req.user?._id,
-            {
-                $set: {
-                    fullName: fullName,
-                    email: email,
-                },
-            },
-            { new: true }
-        ).select("-password");
-    
-        return res
-            .status(200)
-            .json(
-                {"message":"Account details updated successfully",user}
-            );
-} catch (error) {
 
-    res.status(500).json({
-      error
-    })
+export const getUser=async (req,res)=>{
+  try{
+    const user=await User.findById(req.user.id).select('-password -_id -__v')
+    return res.status(200).json({user})
+  }catch(error){
+    console.log(error);
+    res.status(400).json({error})
+  }
 }
-};
 
 export const getStatus=async (req,res)=>{
   try{
@@ -435,3 +354,4 @@ export const getStatus=async (req,res)=>{
     res.status(400).json({error})
   }
 }
+

@@ -48,3 +48,42 @@ export const getUserAttendance=async (req,res)=>{
     console.log(err)
   }
 }
+
+export const getAllUsers = async(req,res) => {
+  try {
+    if(req.user.role!=='admin'){
+      res.status(401).json({message:"Unauthorized"})
+    }
+
+    const result= await User.find().select("-password -refreshToken -__v")
+    console.log(result);
+    return res.status(200).json(result)
+
+  } catch (error) {
+    console.log(error);
+    res.status(400).json({error})
+  }
+}
+
+export const getUser = async(req, res) => {
+  try {
+    if(req.user.role!=='admin'){
+      res.status(401).json({message:"Unauthorized"})
+    }
+    const userId = req.query.id
+    if (typeof(userId) !== "string") {
+      console.log("ID must be string");
+     return  res.status(401).json({message:"ID must be string"})
+    }
+    const user=await User.findById(userId)
+    if (!user) {
+      console.log("user does not exist");
+     return  res.status(401).json({message:"user does not exist"})
+    }
+    console.log(user)
+    return res.status(200).json({"user":user})
+  } catch (error) {
+    console.log(error);
+    res.status(400).json({error})
+  }
+}
