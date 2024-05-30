@@ -46,8 +46,8 @@ export const registerUser =async (req, res) => {
       return res.status(400).json({message:"enter a valid CNIC ex:(4230100000000)"})
     }
 
-    if(!/^(0?[1-9]|[12][0-9]|3[01])-(0?[1-9]|1[012])-((?:19|20)\d\d)$/.test(DOB)){
-      return res.status(400).json({message:"enter a valid date (DD-MM-YYYY)"})
+    if(!/^((?:19|20)\d\d)-(0?[1-9]|1[012])-(0?[1-9]|[12][0-9]|3[01])$/.test(DOB)){
+      return res.status(400).json({message:"enter a valid date (YYYY-MM-DD)"})
     }
 
     if (typeof(phone)!== "string") {
