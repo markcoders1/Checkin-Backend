@@ -16,10 +16,12 @@ const AttendanceSchema = new mongoose.Schema({
         type:Number,
     },
     breakIn:{
-        type:Number,
+        type:Array,
+        default: []
     },
     breakOut:{
-        type:Number,
+        type:Array,
+        default: []
     },
     breakDuration:{
         type:Number,
