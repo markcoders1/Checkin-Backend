@@ -126,7 +126,7 @@ export const getUserAttendance=async (req,res)=>{
         to=date.valueOf()
       }
     }
-    const result= await Attendance.find({userId:req.user.id,date:{$gte:from,$lte:to}})
+    const result= await Attendance.find({userId,date:{$gte:from,$lte:to}})
     res.status(200).json({result})
   }catch(err){
     console.log(err)
