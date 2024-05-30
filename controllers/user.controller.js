@@ -1,24 +1,10 @@
 import { User } from "../models/user.model.js";
 import { Attendance } from "../models/attendance.model.js";
 import jwt from "jsonwebtoken";
-import nodemailer from "nodemailer"
-import {} from 'dotenv/config'
+import { transporterConstructor } from "../utils/email.js";
 
 
-const transporter = nodemailer.createTransport({
-  service: "Gmail",
 
-  auth: {
-    user: process.env.APP_EMAIL,
-    pass: process.env.APP_PASS,
-  },
-});
-const theEmail  = {
-  from : process.env.APP_EMAIL,
-  to:  "zaidb02@approich.com",
-  subject:  "example application for vacation",
-  text: "Hello i want to go for a 100 year long vacation on mars"
-}
 
 
 export const logoutUser =async (req, res, next) => {
@@ -374,7 +360,15 @@ export const getStatus=async (req,res)=>{
 export const sendEmail = async(req, res) => {
   try {
     console.log("Trying to send Email now");
+    const theEmail  = {
+      from : process.env.APP_EMAIL,
+      to:  "zaidb02@approich.com",
+      subject:  "example application for vacation",
+      text: "Hello i want to go for a 100 year long vacation on mars"
+    };
+    console.log(theEmail)
     
+    const transporter = transporterConstructor()
     const info = await transporter.sendMail(theEmail);
     
     console.log("Email has been sent successfully: ", info);
