@@ -1,7 +1,7 @@
 import { User } from "../models/user.model.js";
 import { Attendance } from "../models/attendance.model.js";
 import jwt from "jsonwebtoken";
-import { transporterConstructor } from "../utils/email.js";
+import { transporterConstructor ,generateOTP } from "../utils/email.js";
 
 
 
@@ -142,9 +142,15 @@ export const loginUser =async (req, res) => {
 
 export const test=async (req,res)=>{
   try{
-    console.log(req.query.id);
+    console.log(req.body);
     const date=new Date()
-    const testItem="hi"
+    
+    const user = await User.findOne(req.body);
+    if (!user) {
+        console.log('User not found');
+    }
+    console.log('User found:', user);
+    const testItem=user
     console.log(testItem)
     res.status(200).json({testItem})
   }catch(err){
@@ -306,6 +312,47 @@ export const getUserAttendance=async (req,res)=>{
   }
 }
 
+export const resetPassword = async (req,res) =>{
+  // 1. take email from user (req.body) 
+  // 2. generate a new OTP, 
+  // 3. set that otp as new password 
+  // 4. send otp to user through email
+  try {
+    
+    const user = await User.findOne(req.body);
+    if (!user) {
+        console.log('User not found');
+        return null;
+    }
+    console.log('User found:', user);
+
+    const emailToSendOTP =  user.email
+    const otp = generateOTP(6)
+    console.log(`Trying to send OTP "${otp}" to ${emailToSendOTP} now`);
+    
+    user.password = otp;
+    
+    await user.save({ validateBeforeSave: false });
+    // return res.status(200).json({"message":"password changed successfully"});
+
+    const theEmail  = {
+      from : process.env.APP_EMAIL,
+      to:  emailToSendOTP,
+      subject:  "OTP",
+      text: `This is an automated Email for ${emailToSendOTP}. Your new password has been set to ${otp}`
+    };
+    console.log(theEmail)
+    
+    const transporter = transporterConstructor()
+    const info = await transporter.sendMail(theEmail);
+    
+    console.log("Email with OTP has been sent successfully: ", info);
+    res.status(200).json({message: 'Email with OTP sent successfully', info});
+  } catch (error) {
+    console.error("Error occurred while sending OTP email: ", error);
+    res.status(400).json({error});
+  }
+}
 export const changeCurrentPassword =async (req, res) => {
     try {
       

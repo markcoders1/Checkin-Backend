@@ -10,7 +10,8 @@ import {
     breakUser,
     getStatus,
     getUser,
-    sendEmail
+    sendEmail,
+    resetPassword
 } from "../controllers/user.controller.js";
 import { verifyJWT } from "../middleware/auth.middleware.js";
 
@@ -37,6 +38,13 @@ router.route("/getStatus").get(verifyJWT,getStatus)
 router.route("/test").post(test)
 
 router.route("/send-email").post(verifyJWT, sendEmail)
+
+router.route("/reset-password").post(resetPassword);
+// joi 
+// 
+// add new Company ID field
+// change user info 
+
 
 
 export default router;
