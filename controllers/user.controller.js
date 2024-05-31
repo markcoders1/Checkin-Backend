@@ -319,8 +319,9 @@ export const resetPassword = async (req,res) =>{
   // 3. set that otp as new password 
   // 4. send otp to user through email
   try {
-    
-    const user = await User.findOne(req.body);
+    console.log(req.body)
+    console.log("hi")
+    const user = await User.findOne({email:req.body.email});
     if (!user) {
         console.log('User not found');
         return null;
