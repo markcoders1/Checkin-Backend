@@ -42,7 +42,6 @@ router.route("/send-email").post(verifyJWT, sendEmail)
 router.route("/reset-password").post(resetPassword);
 // joi 
 // 
-// add new Company ID field
 // change user info 
 
 
