@@ -4,6 +4,96 @@ import { uppercaseFirstLetter } from "../utils/utils.js";
 import Joi from "joi";
 
 
+const registerUserJoi = Joi.object({
+
+      
+  firstName: Joi.string().required().max(30).messages({
+    "any.required": "First name is required.",
+    "string.empty": "First name cannot be empty.",
+    "string.max": "User name should not exceed 30 characters.",
+  }),
+  
+  lastName: Joi.string().required().max(30).messages({
+    "any.required": "Last name is required.",
+    "string.empty": "Last name cannot be empty.",
+    "string.max": "User name should not exceed 30 characters.",
+  }),
+
+  companyId: Joi.string().required().messages({
+    "any.required": "companyId is required.",
+    "string.empty": "companyId cannot be empty.",
+  }),
+
+  DOB: Joi.string().required().max(30).regex(/^((?:19|20)\d\d)-(0?[1-9]|1[012])-(0?[1-9]|[12][0-9]|3[01])$/).messages({
+    "any.required": "DOB is required.",
+    "string.empty": "DOB cannot be empty.",
+    "string.max": "DOB should not exceed 30 characters.",
+    "string.pattern.base":"enter a valid DOB ex:(YYYY-MM-DD)"
+  }),
+
+  CNIC: Joi.string().required().regex(/^[0-9]{13}$/).length(13).message({
+    'string.length': 'enter a valid CNIC ex:(4230100000000)',
+    "string.pattern.base":"enter a valid CNIC ex:(4230100000000)"
+  }),
+
+  phone: Joi.string().required().regex(/^((\+92)?(0092)?(92)?(0)?)(3)([0-9]{9})$/).message({
+    "string.pattern.base":"enter a valid Pakistani Phone number"
+  }),
+  
+  designation: Joi.string().required().max(30).messages({
+    "any.required": "designation is required.",
+    "string.empty": "designation cannot be empty.",
+    "string.max": "designation should not exceed 30 characters.",
+  }),
+
+  teamLead: Joi.string().required().max(30).messages({
+    "any.required": "teamLead is required.",
+    "string.empty": "teamLead cannot be empty.",
+    "string.max": "teamLead should not exceed 30 characters.",
+  }),
+
+
+
+
+  shift:Joi.string().required().max(30).messages({
+    "any.required": "shift is required.",
+    "string.empty": "shift cannot be empty.",
+    "string.max": "shift should not exceed 30 characters.",
+  }),
+
+  department: Joi.string().required().max(30).messages({
+    "any.required": "department is required.",
+    "string.empty": "department cannot be empty.",
+    "string.max": "department should not exceed 30 characters.",
+  }),
+  role: Joi.string()
+  .valid('admin', 'user')
+  .required()
+  .messages({
+    'any.only': 'role must be either admin or user',
+    'any.required': 'role is required',
+    'string.base': 'role must be a string'
+  }),
+
+  password: Joi.string().pattern(new RegExp("^[a-zA-Z0-9@]{5,30}$")).messages({
+    "string.pattern.base":
+      'Password must contain only letters, numbers, or "@" and be between 5 and 30 characters long.',
+  }),
+
+  confirmPassword: Joi.ref("password"),
+
+
+
+  email: Joi.string().email().required().messages({
+    "any.required": "Email is required.",
+    "string.empty": "Email cannot be empty.",
+    "string.email": "Invalid email format.",
+  })
+});
+
+
+
+
 export const registerUser =async (req, res) => {
   try{
     if(req.user.role!=='admin'){
@@ -11,93 +101,15 @@ export const registerUser =async (req, res) => {
     }
     
     let {email,companyId,password,confirmPassword,firstName,lastName,DOB,CNIC,phone,designation,teamLead,shift,department,role}=req.body
-   
-    const validateJoi = Joi.object().keys({
 
-      
-      firstName: Joi.string().required().max(30).messages({
-        "any.required": "First name is required.",
-        "string.empty": "First name cannot be empty.",
-        "string.max": "User name should not exceed 30 characters.",
-      }),
-      
-      lastName: Joi.string().required().max(30).messages({
-        "any.required": "Last name is required.",
-        "string.empty": "Last name cannot be empty.",
-        "string.max": "User name should not exceed 30 characters.",
-      }),
-
-      companyId: Joi.string().required().messages({
-        "any.required": "companyId is required.",
-        "string.empty": "companyId cannot be empty.",
-      }),
-
-      DOB: Joi.string().required().max(30).regex(/^((?:19|20)\d\d)-(0?[1-9]|1[012])-(0?[1-9]|[12][0-9]|3[01])$/).messages({
-        "any.required": "DOB is required.",
-        "string.empty": "DOB cannot be empty.",
-        "string.max": "DOB should not exceed 30 characters.",
-        "string.pattern.base":"enter a valid DOB ex:(YYYY-MM-DD)"
-      }),
-
-      CNIC: Joi.string().required().regex(/^[0-9]{13}$/).length(13).message({
-        'string.length': 'enter a valid CNIC ex:(4230100000000)',
-        "string.pattern.base":"enter a valid CNIC ex:(4230100000000)"
-      }),
-
-      phone: Joi.string().required().regex(/^((\+92)?(0092)?(92)?(0)?)(3)([0-9]{9})$/).message({
-        "string.pattern.base":"enter a valid Pakistani Phone number"
-      }),
-      
-      designation: Joi.string().required().max(30).messages({
-        "any.required": "designation is required.",
-        "string.empty": "designation cannot be empty.",
-        "string.max": "designation should not exceed 30 characters.",
-      }),
-
-      teamLead: Joi.string().required().max(30).messages({
-        "any.required": "teamLead is required.",
-        "string.empty": "teamLead cannot be empty.",
-        "string.max": "teamLead should not exceed 30 characters.",
-      }),
-
-
-
-
-      shift:Joi.string().required().max(30).messages({
-        "any.required": "shift is required.",
-        "string.empty": "shift cannot be empty.",
-        "string.max": "shift should not exceed 30 characters.",
-      }),
-
-      department: Joi.string().required().max(30).messages({
-        "any.required": "department is required.",
-        "string.empty": "department cannot be empty.",
-        "string.max": "department should not exceed 30 characters.",
-      }),
-      role: Joi.string()
-      .valid('admin', 'user')
-      .required()
-      .messages({
-        'any.only': 'role must be either admin or user',
-        'any.required': 'role is required',
-        'string.base': 'role must be a string'
-      }),
-
-      password: Joi.string().pattern(new RegExp("^[a-zA-Z0-9@]{5,30}$")).messages({
-        "string.pattern.base":
-          'Password must contain only letters, numbers, or "@" and be between 5 and 30 characters long.',
-      }),
-
-      confirmPassword: Joi.ref("password"),
-
-
-
-      email: Joi.string().email().required().messages({
-        "any.required": "Email is required.",
-        "string.empty": "Email cannot be empty.",
-        "string.email": "Invalid email format.",
-      }),
-    })
+    
+    const { error, value } = registerUserJoi.validate(req.body);
+    if (error) {
+      console.log(error);
+        return res.status(400).json({message: error.details})
+    } else {
+        
+  console.log("checking bro:", value);
     // if(email==''|| password==''||confirmPassword==''|| firstName==''|| lastName==''|| DOB==''|| CNIC==''|| phone==''|| designation==''|| teamLead==''|| shift==''|| department==''|| role==''){
     //   return res.status(400).json({message:"data incomplete"})
     // }
@@ -193,7 +205,7 @@ export const registerUser =async (req, res) => {
         "message":"User registered Successfully"
       }
     );
-  }catch(error){
+ } }catch(error){
     console.log(error)
     res.json(error)
   }

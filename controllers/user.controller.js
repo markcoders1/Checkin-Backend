@@ -196,16 +196,17 @@ export const checkInOrCheckOut = async (req,res) =>{
         }else if(status === "inbreak") {
           // break out:
           const array=await Attendance.find({userId:req.user.id,date:{$gte: new Date(new Date()-1*60*60*24*1000)}})
-    
-          //get last object in attendance array
+         
           let objToChange =array[array.length-1]
           //put new time value in breakIn which is inside this object
-          objToChange.breakOut=new Date().valueOf() 
-          const breakOutTime = objToChange.breakOut
-          const breakInTime = objToChange.breakIn
-          objToChange.breakDuration = breakOutTime - breakInTime
-          console.log("Break Duration: ", objToChange.breakDuration);
+          //if array is empty, simply push else append at the end
+          objToChange.breakOut.push(new Date().valueOf())
+          const breakOutTime = objToChange.breakOut[objToChange.breakOut.length -1]
+          const breakInTime = objToChange.breakIn[objToChange.breakIn.length -1]
+          objToChange.breakDuration = (breakOutTime - breakInTime) + objToChange.breakDuration
           user.status = "checkin"
+          await user.save();
+          await objToChange.save();
           //checking out
           objToChange.checkOut=new Date().valueOf()
           const duration = objToChange.checkOut-objToChange.checkIn
