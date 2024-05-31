@@ -8,9 +8,9 @@ export const registerUser =async (req, res) => {
       res.status(401).json({message:"Unauthorized"})
     }
     
-    let {email,password,firstName,lastName,DOB,CNIC,phone,designation,teamLead,shift,department,role}=req.body
+    let {email,companyId,password,confirmPassword,firstName,lastName,DOB,CNIC,phone,designation,teamLead,shift,department,role}=req.body
     
-    if(email==''|| password==''|| firstName==''|| lastName==''|| DOB==''|| CNIC==''|| phone==''|| designation==''|| teamLead==''|| shift==''|| department==''|| role==''){
+    if(email==''|| password==''||confirmPassword==''|| firstName==''|| lastName==''|| DOB==''|| CNIC==''|| phone==''|| designation==''|| teamLead==''|| shift==''|| department==''|| role==''){
       return res.status(400).json({message:"data incomplete"})
     }
 
@@ -21,7 +21,9 @@ export const registerUser =async (req, res) => {
     if (typeof(password)!=='string'){
       return res.status(400).json({message:"enter a valid password"})
     }
-
+    if (typeof(confirmPassword)!=='string' && confirmPassword !== password ){
+      return res.status(400).json({message:"confirm password does not match password"})
+    }
     if(password.length<6){
       return res.status(400).json({message:"password is too short"})
     }
