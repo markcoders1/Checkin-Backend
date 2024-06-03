@@ -12,6 +12,10 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    companyId:{
+        type:String,
+        required:true
+    },
     DOB:{
         type: String,
         required: true

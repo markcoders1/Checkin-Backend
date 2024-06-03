@@ -1,6 +1,11 @@
 import { User } from "../models/user.model.js";
 import { Attendance } from "../models/attendance.model.js";
 import jwt from "jsonwebtoken";
+import { transporterConstructor ,generateOTP } from "../utils/email.js";
+
+
+
+
 
 export const logoutUser =async (req, res, next) => {
     try {
@@ -137,9 +142,15 @@ export const loginUser =async (req, res) => {
 
 export const test=async (req,res)=>{
   try{
-    console.log(req.query.id);
+    console.log(req.body);
     const date=new Date()
-    const testItem="hi"
+    
+    const user = await User.findOne(req.body);
+    if (!user) {
+        console.log('User not found');
+    }
+    console.log('User found:', user);
+    const testItem=user
     console.log(testItem)
     res.status(200).json({testItem})
   }catch(err){
@@ -165,7 +176,7 @@ export const checkInOrCheckOut = async (req,res) =>{
           //calculate totalDuration and netduration and checkout
           const array=await Attendance.find({userId:req.user.id,date:{$gte: new Date(new Date()-1*60*60*24*1000)}})
           const objToChange=array[array.length-1]
-          const duration=(new Date().valueOf())-objToChange.checkIn
+          // const duration=(new Date().valueOf())-objToChange.checkIn
           // if(duration<1000*60*60*2){
           //   res.status(403).json({message:"Please consult Management about leaving early"})
           //   return;
@@ -185,16 +196,17 @@ export const checkInOrCheckOut = async (req,res) =>{
         }else if(status === "inbreak") {
           // break out:
           const array=await Attendance.find({userId:req.user.id,date:{$gte: new Date(new Date()-1*60*60*24*1000)}})
-    
-          //get last object in attendance array
+         
           let objToChange =array[array.length-1]
           //put new time value in breakIn which is inside this object
-          objToChange.breakOut=new Date().valueOf() 
-          const breakOutTime = objToChange.breakOut
-          const breakInTime = objToChange.breakIn
-          objToChange.breakDuration = breakOutTime - breakInTime
-          console.log("Break Duration: ", objToChange.breakDuration);
+          //if array is empty, simply push else append at the end
+          objToChange.breakOut.push(new Date().valueOf())
+          const breakOutTime = objToChange.breakOut[objToChange.breakOut.length -1]
+          const breakInTime = objToChange.breakIn[objToChange.breakIn.length -1]
+          objToChange.breakDuration = (breakOutTime - breakInTime) + objToChange.breakDuration
           user.status = "checkin"
+          await user.save();
+          await objToChange.save();
           //checking out
           objToChange.checkOut=new Date().valueOf()
           const duration = objToChange.checkOut-objToChange.checkIn
@@ -243,16 +255,13 @@ export const breakUser = async (req, res) => {
         //get last object in attendance array
         const objToChange =array[array.length-1]
         //put new time value in breakIn which is inside this object
-        objToChange.breakIn = new Date().valueOf()
-        
+          objToChange.breakIn.push(new Date().valueOf())
         //change status to inbreak
         user.status = "inbreak";
         //save 
         await user.save();
         await objToChange.save();
-        return res.status(200).json({ message: "break in successfully", objToChange,"status":user.status});
-
-
+        return res.status(200).json({ message: "break in successfully", objToChange,"status":user.status})
 
       } else if(status === "inbreak") {
         // break out:
@@ -260,12 +269,12 @@ export const breakUser = async (req, res) => {
         //get last object in attendance array
         let objToChange =array[array.length-1]
         //put new time value in breakIn which is inside this object
-        
-        objToChange.breakOut=new Date().valueOf() 
-        const breakOutTime = objToChange.breakOut
-        const breakInTime = objToChange.breakIn
+        //if array is empty, simply push else append at the end
+        objToChange.breakOut.push(new Date().valueOf())
+        const breakOutTime = objToChange.breakOut[objToChange.breakOut.length -1]
+        const breakInTime = objToChange.breakIn[objToChange.breakIn.length -1]
         objToChange.breakDuration = (breakOutTime - breakInTime) + objToChange.breakDuration
-        console.log("Break Duration: ", objToChange.breakDuration);
+        
         user.status = "checkin"
         await user.save();
         await objToChange.save();
@@ -304,6 +313,48 @@ export const getUserAttendance=async (req,res)=>{
   }
 }
 
+export const resetPassword = async (req,res) =>{
+  // 1. take email from user (req.body) 
+  // 2. generate a new OTP, 
+  // 3. set that otp as new password 
+  // 4. send otp to user through email
+  try {
+    console.log(req.body)
+    console.log("hi")
+    const user = await User.findOne({email:req.body.email});
+    if (!user) {
+        console.log('User not found');
+        return null;
+    }
+    console.log('User found:', user);
+
+    const emailToSendOTP =  user.email
+    const otp = generateOTP(6)
+    console.log(`Trying to send OTP "${otp}" to ${emailToSendOTP} now`);
+    
+    user.password = otp;
+    
+    await user.save({ validateBeforeSave: false });
+    // return res.status(200).json({"message":"password changed successfully"});
+
+    const theEmail  = {
+      from : process.env.APP_EMAIL,
+      to:  emailToSendOTP,
+      subject:  "OTP",
+      text: `This is an automated Email for ${emailToSendOTP}. Your new password has been set to ${otp}`
+    };
+    console.log(theEmail)
+    
+    const transporter = transporterConstructor()
+    const info = await transporter.sendMail(theEmail);
+    
+    console.log("Email with OTP has been sent successfully: ", info);
+    res.status(200).json({message: 'Email with OTP sent successfully', info});
+  } catch (error) {
+    console.error("Error occurred while sending OTP email: ", error);
+    res.status(400).json({error});
+  }
+}
 export const changeCurrentPassword =async (req, res) => {
     try {
       
@@ -355,3 +406,24 @@ export const getStatus=async (req,res)=>{
   }
 }
 
+export const sendEmail = async(req, res) => {
+  try {
+    console.log("Trying to send Email now");
+    const theEmail  = {
+      from : process.env.APP_EMAIL,
+      to:  "zaidb02@approich.com",
+      subject:  "example application for vacation",
+      text: "Hello i want to go for a 100 year long vacation on mars"
+    };
+    console.log(theEmail)
+    
+    const transporter = transporterConstructor()
+    const info = await transporter.sendMail(theEmail);
+    
+    console.log("Email has been sent successfully: ", info);
+    res.status(200).json({message: 'Email sent successfully', info});
+  } catch (error) {
+    console.error("Error occurred while sending email: ", error);
+    res.status(400).json({error});
+  }
+}

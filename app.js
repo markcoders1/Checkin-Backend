@@ -3,14 +3,17 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import userRouter from "./routes/user.routes.js";
 import adminRouter from "./routes/admin.routes.js"
+import morgan from "morgan";
 const app = express();
 
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN,
+    origin:"*",
     credentials: true,
   })
 );
+
+app.use(morgan("tiny"))
 
 app.use(
   express.json({
