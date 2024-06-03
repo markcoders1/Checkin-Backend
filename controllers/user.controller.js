@@ -332,11 +332,8 @@ export const resetPassword = async (req,res) =>{
     const otp = generateOTP(6)
     console.log(`Trying to send OTP "${otp}" to ${emailToSendOTP} now`);
     
-    user.password = otp;
-    
-    await user.save({ validateBeforeSave: false });
-    // return res.status(200).json({"message":"password changed successfully"});
 
+    // Email defined here
     const theEmail  = {
       from : process.env.APP_EMAIL,
       to:  emailToSendOTP,
@@ -344,12 +341,20 @@ export const resetPassword = async (req,res) =>{
       text: `This is an automated Email for ${emailToSendOTP}. Your new password has been set to ${otp}`
     };
     console.log(theEmail)
-    
+    //send email
     const transporter = transporterConstructor()
-    const info = await transporter.sendMail(theEmail);
-    
-    console.log("Email with OTP has been sent successfully: ", info);
-    res.status(200).json({message: 'Email with OTP sent successfully', info});
+
+    await transporter.sendMail(theEmail, (error) => {
+      if (error) return res.status(400).json({"Email not sent":error});
+    });
+
+    console.log("Email with OTP has been sent successfully");
+
+    //change password after email is sent with code
+    user.password = otp;
+    await user.save({ validateBeforeSave: false });
+   console.log("password has been reset. ");
+    res.status(200).json({message: 'Email with OTP sent successfully and password has been reset'});
   } catch (error) {
     console.error("Error occurred while sending OTP email: ", error);
     res.status(400).json({error});
@@ -418,10 +423,15 @@ export const sendEmail = async(req, res) => {
     console.log(theEmail)
     
     const transporter = transporterConstructor()
-    const info = await transporter.sendMail(theEmail);
+    // const info = await transporter.sendMail(theEmail);
     
-    console.log("Email has been sent successfully: ", info);
-    res.status(200).json({message: 'Email sent successfully', info});
+    await transporter.sendMail(theEmail, (error) => {
+      if (error) return res.status(400).json({"Email not sent":error});
+    });
+
+
+    console.log("Email has been sent successfully");
+    res.status(200).json({message: 'Email sent successfully'});
   } catch (error) {
     console.error("Error occurred while sending email: ", error);
     res.status(400).json({error});
