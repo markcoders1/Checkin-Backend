@@ -293,20 +293,26 @@ export const breakUser = async (req, res) => {
 
 export const getUserAttendance=async (req,res)=>{
   try{
+    console.log("working");
     const date=new Date()
+    console.log("date",date);
     let {from,to}=req.query
+    console.log("query",req.query);
 
     if(!from){
       from =new Date(date.getFullYear(), date.getMonth(), 1).valueOf();
+      console.log("from",from);
     }
     if(!to){
       to=from+2629746000
+      console.log("to",to);
       if(to>date.valueOf()){
         to=date.valueOf()
       }
     }
-    console.log(new Date(from))
+
     const result= await Attendance.find({userId:req.user.id,date:{$gte:from,$lte:to}})
+    console.log("result");
     res.status(200).json({result})
   }catch(err){
     console.log(err)
