@@ -22,11 +22,13 @@ const userSchema = new mongoose.Schema({
     },
     CNIC:{
         type: String,
-        required: true
+        required: true,
+        unique: true,
     },
     phone:{
         type: String,
-        required: true
+        required: true,
+        unique: true,
     },
     designation:{
         type: String,
