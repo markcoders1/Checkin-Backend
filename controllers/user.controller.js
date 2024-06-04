@@ -2,7 +2,7 @@ import { User } from "../models/user.model.js";
 import { Attendance } from "../models/attendance.model.js";
 import jwt from "jsonwebtoken";
 import { transporterConstructor ,generateOTP } from "../utils/email.js";
-
+import Joi from "joi";
 
 
 
@@ -86,19 +86,32 @@ export const refreshAccessToken = async (req, res) => {
   }
 };
 
+const loginUserJoi = Joi.object({
+  email: Joi.string().email().required().messages({
+    "any.required": "Email is required.",
+    "string.empty": "Email cannot be empty.",
+    "string.email": "Invalid email format.",
+  }),
 
-//!email not found error not yet implemented
+  password: Joi.string().pattern(new RegExp("^[a-zA-Z0-9@]{5,30}$")).messages({
+    "string.pattern.base":
+      'Password must contain only letters, numbers, or "@" and be between 5 and 30 characters long.',
+  })
+});
+
 export const loginUser =async (req, res) => {
 
    try {
      const { email, password } = req.body;
- 
-     if (!email) {
-      return res.status(400).json({message:"please enter an email"})
-     }else if(!password){
-      return res.status(400).json({message:"please enter a password"})
-     }
- 
+
+     ///Joi email and password check
+  const {error} = loginUserJoi.validate(req.body);
+  if (error) {
+    console.log(error);
+    return res.status(400).json({ message: error.details });
+  }
+
+  //login
      const user = await User.findOne({email:email});
  
      if (!user) {
