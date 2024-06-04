@@ -2,7 +2,7 @@ import { User } from "../models/user.model.js";
 import { Attendance } from "../models/attendance.model.js";
 import jwt from "jsonwebtoken";
 import { transporterConstructor ,generateOTP } from "../utils/email.js";
-
+import Joi from "joi";
 
 
 
@@ -20,7 +20,9 @@ export const logoutUser =async (req, res, next) => {
                 .clearCookie("refreshToken")
                 .json({"message":"user logged out"});
         } catch (error) {
-            res.json({error})
+            return res
+            .status(400)
+            .json({error})
     }
 };  
 
@@ -86,19 +88,32 @@ export const refreshAccessToken = async (req, res) => {
   }
 };
 
+const loginUserJoi = Joi.object({
+  email: Joi.string().email().required().messages({
+    "any.required": "Email is required.",
+    "string.empty": "Email cannot be empty.",
+    "string.email": "Invalid email format.",
+  }),
 
-//!email not found error not yet implemented
+  password: Joi.string().pattern(new RegExp("^[a-zA-Z0-9@]{5,30}$")).messages({
+    "string.pattern.base":
+      'Password must contain only letters, numbers, or "@" and be between 5 and 30 characters long.',
+  })
+});
+
 export const loginUser =async (req, res) => {
 
    try {
      const { email, password } = req.body;
- 
-     if (!email) {
-      return res.status(400).json({message:"please enter an email"})
-     }else if(!password){
-      return res.status(400).json({message:"please enter a password"})
-     }
- 
+
+     ///Joi email and password check
+  const {error} = loginUserJoi.validate(req.body);
+  if (error) {
+    console.log(error);
+    return res.status(400).json({ message: error.details });
+  }
+
+  //login
      const user = await User.findOne({email:email});
  
      if (!user) {
@@ -221,7 +236,9 @@ export const checkInOrCheckOut = async (req,res) =>{
           user.status="checkout"
           await user.save();
           await objToChange.save();
-          return res.json({ message: "break out and checkout Successfully", "status":user.status });
+          return res
+          .status(200)
+          .json({ message: "break out and checkout Successfully", "status":user.status });
         };
 
     } catch (error) {
@@ -242,7 +259,9 @@ export const breakUser = async (req, res) => {
     console.log("Status: ", user.status);
 
     if (status === "checkout") {
-      return res.json({
+      return res
+      .status(400)
+      .json({
         message: "User Must be Checked In to access Break",
         status,
       });
@@ -278,7 +297,9 @@ export const breakUser = async (req, res) => {
         user.status = "checkin"
         await user.save();
         await objToChange.save();
-        return res.json({ message: "break out Successfully", objToChange,"status":user.status });
+        return res
+        .status(200)
+        .json({ message: "break out Successfully", objToChange,"status":user.status });
       }
     
   } catch (error) {
@@ -320,6 +341,14 @@ export const getUserAttendance=async (req,res)=>{
   }
 }
 
+const resetPasswordJoi = Joi.object({
+  email: Joi.string().email().required().messages({
+    "any.required": "Email is required.",
+    "string.empty": "Email cannot be empty.",
+    "string.email": "Invalid email format.",
+  }),
+});
+
 export const resetPassword = async (req,res) =>{
   // 1. take email from user (req.body) 
   // 2. first check if there is a user with that email in database
@@ -328,11 +357,20 @@ export const resetPassword = async (req,res) =>{
   // 5. send otp to user through email
   try {
     console.log(req.body)
-    console.log("hi")
+
+     ///Joi email check
+     const {error} =resetPasswordJoi.validate(req.body);
+     if (error) {
+       console.log(error);
+       return res.status(400).json({ message: error.details });
+     }
+
     const user = await User.findOne({email:req.body.email});
     if (!user) {
         console.log('User not found');
-        return res.json({
+        return res
+        .status(400)
+        .json({
           message: `There is no user registered with the email: ${req.body.email} `
         });
     }
@@ -370,6 +408,19 @@ export const resetPassword = async (req,res) =>{
     res.status(400).json({error});
   }
 }
+
+const changePasswordJoi = Joi.object({
+  oldPassword: Joi.string().pattern(new RegExp("^[a-zA-Z0-9@]{5,30}$")).messages({
+    "string.pattern.base":
+      'Old Password must contain only letters, numbers, or "@" and be between 5 and 30 characters long.',
+  }),
+  newPassword: Joi.string().pattern(new RegExp("^[a-zA-Z0-9@]{5,30}$")).messages({
+    "string.pattern.base":
+      'New Password must contain only letters, numbers, or "@" and be between 5 and 30 characters long.',
+  })
+});
+
+
 export const changeCurrentPassword =async (req, res) => {
     try {
       
@@ -377,6 +428,12 @@ export const changeCurrentPassword =async (req, res) => {
         if (!oldPassword||!newPassword){
           return res.status(400).json({message:"incomplete data"})
         }
+     ///Joi oldPassword and newPassword check
+     const {error} = changePasswordJoi.validate(req.body);
+     if (error) {
+       console.log(error);
+       return res.status(400).json({ message: error.details });
+     }
 
         const user = await User.findById(req.user?._id);
     

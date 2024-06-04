@@ -4,7 +4,7 @@ import cookieParser from "cookie-parser";
 import userRouter from "./routes/user.routes.js";
 import adminRouter from "./routes/admin.routes.js"
 import morgan from "morgan";
-import {limiterDefault, limiterCheck, limiterBreak} from "./middleware/limit.middleware.js";
+import { defaultLimiter, checkLimiter, breakLimiter, passwordLimiter} from "./middleware/limit.middleware.js";
 const app = express();
 
 app.use(
@@ -21,11 +21,13 @@ app.use(morgan("tiny"))
 // default (applies to all) 20 per min 
 // breakin breakout 5 min me 1 only
 // checkin checkout 1 hour me 1 only
+// reset-password and change-password once per day
 
-app.use(limiterDefault)
-app.use('/api/check' , limiterCheck )
-app.use('/api/break', limiterBreak)
-
+app.use(defaultLimiter)
+app.use('/api/check' , checkLimiter )
+app.use('/api/break', breakLimiter)
+app.use('/api/reset-password' , passwordLimiter  )
+app.use('/api/change-password' , passwordLimiter )
 
 app.use(
   express.json({
