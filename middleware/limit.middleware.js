@@ -31,3 +31,9 @@ export const limiterCheck = rateLimit({
         return {message: "You can only check once per Hour"}}
 });
 
+export const limiterPassword = rateLimit({
+    windowMs: 24*60*60*1000,  // 1 day
+    limit: 1,
+    message: ()=>{
+        return {message: "You can only change/reset password once per day"}}
+});
