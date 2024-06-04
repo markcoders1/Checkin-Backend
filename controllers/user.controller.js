@@ -322,16 +322,19 @@ export const getUserAttendance=async (req,res)=>{
 
 export const resetPassword = async (req,res) =>{
   // 1. take email from user (req.body) 
-  // 2. generate a new OTP, 
-  // 3. set that otp as new password 
-  // 4. send otp to user through email
+  // 2. first check if there is a user with that email in database
+  // 3. generate a new OTP, 
+  // 4. set that otp as new password 
+  // 5. send otp to user through email
   try {
     console.log(req.body)
     console.log("hi")
     const user = await User.findOne({email:req.body.email});
     if (!user) {
         console.log('User not found');
-        return null;
+        return res.json({
+          message: `There is no user registered with the email: ${req.body.email} `
+        });
     }
     console.log('User found:', user);
 
