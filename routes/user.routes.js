@@ -11,7 +11,8 @@ import {
     getStatus,
     getUser,
     sendEmail,
-    resetPassword
+    resetPassword,
+    getAttendancePDF
 } from "../controllers/user.controller.js";
 import { verifyJWT } from "../middleware/auth.middleware.js";
 
@@ -31,6 +32,8 @@ router.route("/change-password").post(verifyJWT, changeCurrentPassword);
 
 router.route("/getUserAttendance").get(verifyJWT,getUserAttendance)
 
+router.route("/getAttendancePDF").get(verifyJWT,getAttendancePDF)
+
 router.route("/getUser").get(verifyJWT,getUser)
 
 router.route("/getStatus").get(verifyJWT,getStatus)
@@ -40,9 +43,6 @@ router.route("/test").post(test)
 router.route("/send-email").post(verifyJWT, sendEmail)
 
 router.route("/reset-password").post(resetPassword);
-
-// 
-// change user info 
 
 
 

@@ -3,7 +3,10 @@ import { Attendance } from "../models/attendance.model.js";
 import jwt from "jsonwebtoken";
 import { transporterConstructor ,generateOTP } from "../utils/email.js";
 import Joi from "joi";
-
+import {jsPDF} from "jspdf";
+import 'jspdf-autotable'
+import { unixTo24Time, unixToDate, unixToTime } from "../utils/utils.js";
+import * as fs from 'fs'
 
 
 
@@ -314,27 +317,22 @@ export const breakUser = async (req, res) => {
 
 export const getUserAttendance=async (req,res)=>{
   try{
-    console.log("working");
     const date=new Date()
-    console.log("date",date);
     let {from,to}=req.query
-    console.log("query",req.query);
 
     if(!from){
       from =new Date(date.getFullYear(), date.getMonth(), 1).valueOf();
-      console.log("from",from);
     }
     if(!to){
-      to=from+2629746000
-      console.log("to",to);
+      to=from+2678400000
       if(to>date.valueOf()){
         to=date.valueOf()
       }
+    }else if(to-from>2678400000){
+      to=from+2678400000
     }
 
     const result= await Attendance.find({userId:req.user.id,date:{$gte:from,$lte:to}})
-    console.log("result",result);
-    console.log("result",{result});
     res.status(200).json({result})
   }catch(err){
     console.log(err)
@@ -503,4 +501,123 @@ export const sendEmail = async(req, res) => {
     console.error("Error occurred while sending email: ", error);
     res.status(400).json({error});
   }
+}
+
+export const getAttendancePDF= async (req,res)=>{
+  let {from,to,userId}=req.query
+  const date=new Date()
+  let user
+
+  if(!from){
+    from =new Date(date.getFullYear(), date.getMonth(), 1).valueOf();
+  }
+  if(!to){
+    to=from+2678400000
+    if(to>date.valueOf()){
+      to=date.valueOf()
+    }
+  }else if(to-from>2678400000){
+    to=from+2678400000
+  }
+
+  if(!userId){
+    userId = req.user.id
+    user = req.user
+  }else{
+    user = await User.findById(userId)
+    if(!user) return res.status(400).json({message:"user not found"})
+  }
+
+  const result= await Attendance.find({userId:userId,date:{$gte:from,$lte:to}})
+  const numberOfEntries=result.length
+
+  const doc = new jsPDF();
+
+  const columns = ["Date", "Check in","Check Out","total Duration","Break Duration","Net Duration"];
+  const rows = result.map((e)=>{
+    return [
+      unixToDate(e.date),
+      unixToTime(e.checkIn),
+      unixToTime(e.checkOut),
+      unixTo24Time(e.totalDuration),
+      unixTo24Time(e.breakDuration),
+      unixTo24Time(e.netDuration)
+    ]
+  })
+
+  const logoData = fs.readFileSync("utils/ff-01.png",'base64')
+  doc.addImage(logoData,'PNG',85, 0, 30, 30)
+
+  doc.setFontSize(10); 
+
+  doc.text(`User: ${user.firstName} ${user.lastName} / ${user.companyId}`,14,28)
+
+  doc.setFontSize(18)
+
+  doc.text(`Attendance`, 14, 36);
+
+  doc.autoTable({
+    head: [columns],
+    body: rows,
+    startY: 40
+  });
+
+  let finalY = doc.lastAutoTable.finalY + 10;
+
+  const totalDuration=result.map((e)=>{
+    if(e.totalDuration==undefined){
+      return 0
+    }else{
+      return e.totalDuration
+    }
+  }).reduce((p,c)=>p+c)
+
+  const breakDuration=result.map((e)=>{
+
+    if(e.breakDuration==undefined){
+      return 0
+    }else{
+      return e.breakDuration
+    }
+    
+  }).reduce((p,c)=>p+c)
+
+  const netDuration=result.map((e)=>{
+
+    if(e.netDuration==undefined){
+      return 0
+    }else{
+      return e.netDuration
+    }
+
+  }).reduce((p,c)=>p+c)
+
+  const columns2=["total Duration","Break Duration","Net Duration"]
+  const rows2=[[unixTo24Time(totalDuration/numberOfEntries),unixTo24Time(breakDuration/numberOfEntries),unixTo24Time(netDuration/numberOfEntries)]]
+  doc.text("Averages",14,finalY)
+
+  doc.autoTable({
+    head:[columns2],
+    body:rows2,
+    startY:finalY+5
+  })
+
+  finalY = doc.lastAutoTable.finalY
+
+  doc.setFontSize(10); // Set font size
+  doc.setTextColor(112, 128, 144); // Set text color (RGB: blue)
+
+
+  doc.text("*This is a computer generated file, for any issues, please contact management",14,finalY+5)
+
+  const pdfBuffer = Buffer.from(doc.output('arraybuffer'));
+  const filenameDate=new Date(from)
+  console.log(filenameDate)
+
+  const filename=`${req.user.companyId}.${filenameDate.getDate()}-${filenameDate.getMonth()}-${filenameDate.getFullYear()}`
+
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', `attachment; filename=${filename}.pdf`);
+  res.send(pdfBuffer);
+
 }

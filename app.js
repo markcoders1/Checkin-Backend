@@ -23,9 +23,9 @@ app.use(morgan("tiny"))
 // checkin checkout 1 hour me 1 only
 // reset-password and change-password once per day
 
-app.use(defaultLimiter)
-app.use('/api/check' , checkLimiter )
-app.use('/api/break', breakLimiter)
+app.use( defaultLimiter )
+// app.use('/api/check' , checkLimiter )
+app.use('/api/break', breakLimiter )
 app.use('/api/reset-password' , passwordLimiter  )
 app.use('/api/change-password' , passwordLimiter )
 
