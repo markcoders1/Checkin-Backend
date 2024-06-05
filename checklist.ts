@@ -4,6 +4,7 @@
     //ToDo login loader
         //* add a loader to the button so that it tells the user that server is processing the request
     //ToDo logout prompt
+        //* simple custom popup
     //ToDo break reminder
         //* will need to experiment with notifications from browser
     //ToDo stay logged in
@@ -11,6 +12,7 @@
     //ToDo remember me deletion after logout
         //* clean cookies upon logout
     //ToDo location validation using gps
+        //* google geolib npm module
     
 //head backend
     //ToDo failed log in attempts
@@ -22,13 +24,23 @@
     //ToDo log out after a period of time
         //* session IDs, will need to experiment with jwt expiry
     //ToDo edit user profile as user
+        //* there are three ways to do this
+
+        //* 1. to make multiple apis, one for each field
+        //* 2. to make one api, with many if conditionals to change all
+        //* 3. make one api that updates everything all at once, even if nothing has changed
+    //ToDo update user details as admin
+        //* same as above
     //ToDo password strength as user
         //! not possible due to admin registration
         //* possible on change password
-    //ToDo update user details as admin
     //ToDo account activity monitoring
         //* add account logs for each user on a seperate database model
     //ToDo additional information
+        //* image
+            //* will need S3 server
+        //* active/inactive
+
     //ToDo google account
         //! not possible due to the nature of the registration feature
         
