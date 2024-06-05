@@ -75,6 +75,10 @@ const userSchema = new mongoose.Schema({
     active:{
         type:Boolean,
         default:true,
+    },
+    image:{
+        type:String,
+        default:"https://test.markcoders.com/ola_ads_api/assets/user.png"
     }
 },
 { timestamps: true }

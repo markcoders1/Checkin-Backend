@@ -35,8 +35,7 @@
     //ToDo additional information
         //* image
             //* will need S3 server
-        //* active/inactive
-
+        //Done active/inactive
     //ToDo google account
         //! not possible due to the nature of the registration feature
         
