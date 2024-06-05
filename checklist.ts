@@ -1,21 +1,4 @@
-//Done login using email password
-//Done reset password
-//Done password secure
-//Done login error messages
-//Done log out
-//Done list of all users as admin
-//Done view user profile as user
-//Done change password
-//Done break start
-//Done break end
-//Done break time summaries
-//Done break reports
-//Done check in
-//Done check out
-//Done attendance records as admin
-//Done personal attendance history
-//Done generating a pdf using the data as a user
-//Done generating a pdf using the data as an admin
+//! NOTE: this is where algorithms and strategies will be written down in order to keep the rest of the files clean
 
 //head frontend
     //ToDo login loader
@@ -29,8 +12,6 @@
         //* clean cookies upon logout
     //ToDo location validation using gps
     
-    
-
 //head backend
     //ToDo failed log in attempts
         //* will need its own database collection
@@ -51,14 +32,32 @@
     //ToDo google account
         //! not possible due to the nature of the registration feature
         
-    
-
 //head hybrid
     //ToDo log out from all devices
         //* will need frontend device parser
         //* google ua-parser-js
+
 //? total time spent in office for a specific time period
 //? total time spent in break for a specific time period
 //? total net time for a specific time period
 //? required total time for a specific time period
 //? efficiency Percentage based on the formula: total net time spent in office/expected total net time spent in office*100
+
+//Done login using email password
+//Done reset password
+//Done password secure
+//Done login error messages
+//Done log out
+//Done list of all users as admin
+//Done view user profile as user
+//Done change password
+//Done break start
+//Done break end
+//Done break time summaries
+//Done break reports
+//Done check in
+//Done check out
+//Done attendance records as admin
+//Done personal attendance history
+//Done generating a pdf using the data as a user
+//Done generating a pdf using the data as an admin
