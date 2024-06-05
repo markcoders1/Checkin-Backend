@@ -71,6 +71,10 @@ const userSchema = new mongoose.Schema({
         lowercase: true,
         trim: true,
         default: "checkout"
+    },
+    active:{
+        type:Boolean,
+        default:true,
     }
 },
 { timestamps: true }

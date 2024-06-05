@@ -13,6 +13,7 @@
         //* clean cookies upon logout
     //ToDo location validation using gps
         //* google geolib npm module
+        //* latitude and longetude of Markcoders (24.899659, 67.109078)
     
 //head backend
     //ToDo failed log in attempts
@@ -31,9 +32,6 @@
         //* 3. make one api that updates everything all at once, even if nothing has changed
     //ToDo update user details as admin
         //* same as above
-    //ToDo password strength as user
-        //! not possible due to admin registration
-        //* possible on change password
     //ToDo account activity monitoring
         //* add account logs for each user on a seperate database model
     //ToDo additional information
@@ -45,6 +43,9 @@
         //! not possible due to the nature of the registration feature
         
 //head hybrid
+    //ToDo password strength as user
+        //! not possible due to admin registration
+        //* possible on change password
     //ToDo log out from all devices
         //* will need frontend device parser
         //* google ua-parser-js
@@ -71,5 +72,5 @@
 //Done check out
 //Done attendance records as admin
 //Done personal attendance history
-//Done generating a pdf using the data as a user
-//Done generating a pdf using the data as an admin
+//Done 6/6/24 generating a pdf using the data as a user
+//Done 6/6/24 generating a pdf using the data as an admin

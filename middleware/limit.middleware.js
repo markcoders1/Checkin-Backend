@@ -37,3 +37,10 @@ export const passwordLimiter = rateLimit({
     message: ()=>{
         return {message: "You can only change/reset password once per day"}}
 });
+
+export const PDFlimiter = rateLimit({
+    windowMs: 24*60*60*1000,  // 1 day
+    limit: 1,
+    message: ()=>{
+        return {message: "You can only generate a pdf once per day"}}
+});
