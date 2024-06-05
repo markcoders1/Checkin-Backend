@@ -20,8 +20,6 @@
         //* will need its own database collection
         //* frontend sends email and password
         //* if password incorrect, x number of times, user cannot login anymore for a set amount of time
-    //ToDo deactivate user account
-        //* add active status on the user model
     //ToDo log out after a period of time
         //* session IDs, will need to experiment with jwt expiry
     //ToDo edit user profile as user
@@ -74,3 +72,5 @@
 //Done personal attendance history
 //Done 6/6/24 generating a pdf using the data as a user
 //Done 6/6/24 generating a pdf using the data as an admin
+//Done 6/6/24 deactivate user account
+    //* add active status on the user model
