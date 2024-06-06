@@ -12,6 +12,7 @@
     //ToDo location validation using gps
         //* google geolib npm module
         //* latitude and longetude of Markcoders (24.899659, 67.109078)
+        //* will need to sign a jwt with a secret code, which then the backend will decode and then validate the check in check out
     //ToDo get user information as admin
     //ToDo toggle user account active/inactive state
         //* "/api/admin/toggleUserAccount?userId=xyz"
