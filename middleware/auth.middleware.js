@@ -8,15 +8,12 @@ export const verifyJWT = async (req, res, next) => {
         const token =
             req.cookies?.accessToken ||
             req.header("Authorization")?.replace("Bearer ", "");
-
-        console.log(token);
         if (!token) {
             throw new Error("Unauthorized request");
         }
 
         const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
 
-        console.log("Decoded Token: ", decodedToken);
         const user = await User.findOne({ email: decodedToken.email }).select(
             "-password"
         );

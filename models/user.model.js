@@ -103,22 +103,21 @@ userSchema.methods.generateAccessToken = function () {
         {
             _id: this.ObjectId,
             email: this.email,
-            fullName: this.fullName,
         },
         process.env.ACCESS_TOKEN_SECRET,
         {
-            expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
+            expiresIn: "15s",
         }
     );
 };
 userSchema.methods.generateRefreshToken = function () {
     return jwt.sign(
         {
-            _id: this.ObjectId,
+            email:this.email,
         },
         process.env.REFRESH_TOKEN_SECRET,
         {
-            expiresIn: process.env.REFRESH_TOKEN_EXPIRY,
+            expiresIn: "1m",
         }
     );
 };

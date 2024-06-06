@@ -1,14 +1,14 @@
 import { User } from "../models/user.model.js";
-import { Attendance } from "../models/attendance.model.js";
 import jwt from "jsonwebtoken";
-import { transporterConstructor ,generateOTP } from "../utils/email.js";
 import Joi from "joi";
+import { Attendance } from "../models/attendance.model.js";
+import { transporterConstructor ,generateOTP } from "../utils/email.js";
 import {jsPDF} from "jspdf";
 import 'jspdf-autotable'
 import { unixTo24Time, unixToDate, unixToTime } from "../utils/utils.js";
 import * as fs from 'fs'
 
-
+//! authentication
 
 export const logoutUser =async (req, res, next) => {
     try {
@@ -107,24 +107,24 @@ const loginUserJoi = Joi.object({
 export const loginUser =async (req, res) => {
 
    try {
-     const { email, password } = req.body;
+      const { email, password } = req.body;
 
-     ///Joi email and password check
-  const {error} = loginUserJoi.validate(req.body);
-  if (error) {
-    console.log(error);
-    return res.status(400).json({ message: error.details });
-  }
+      //Joi email and password check
+      const {error} = loginUserJoi.validate(req.body);
+      if (error) {
+        console.log(error);
+        return res.status(400).json({ message: error.details });
+      }
 
-  //login
-     const user = await User.findOne({email:email});
+      //login
+      const user = await User.findOne({email:email});
  
-     if (!user) {
-      return res.status(400).json({message:"user not found"})
-     }
-     if(!user.active){
-      return res.status(400).json({message:"your account has been deactivated"})
-     }
+      if (!user) {
+       return res.status(400).json({message:"user not found"})
+      }
+      if(!user.active){
+       return res.status(400).json({message:"your account has been deactivated"})
+      }
  
      const isPasswordValid = await user.isPasswordCorrect(password);
      if (!isPasswordValid) {
@@ -136,14 +136,10 @@ export const loginUser =async (req, res) => {
      );
  
  
-     const loggedInUser = await User.findById(user._id).select(
-         "-password -refreshToken"
-     );
+     const loggedInUser = await User.findById(user._id).select("-password -refreshToken");
  
-     const options = {
-         httpOnly: true,
-         secure: true,
-     };
+     const options = { httpOnly: true, secure: true };
+
      return res
          .status(200)
          .cookie("accessToken", accessToken, options)
@@ -193,6 +189,7 @@ export const checkInOrCheckOut = async (req,res) =>{
 
   try {
         let user = await User.findById(req.user.id);
+        console.log(user)
         const status=user.status
 
         if(status==="checkout"){
@@ -227,7 +224,8 @@ export const checkInOrCheckOut = async (req,res) =>{
         }else if(status === "inbreak") {
           // break out:
           const array=await Attendance.find({userId:req.user.id,date:{$gte: new Date(new Date()-1*60*60*24*1000)}})
-         
+
+
           let objToChange =array[array.length-1]
           //put new time value in breakIn which is inside this object
           //if array is empty, simply push else append at the end

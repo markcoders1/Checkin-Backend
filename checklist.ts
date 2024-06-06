@@ -9,19 +9,22 @@
         //* will need to experiment with notifications from browser
     //ToDo stay logged in
         //* frontend will store token in redux
-    //ToDo remember me deletion after logout
-        //* clean cookies upon logout
     //ToDo location validation using gps
         //* google geolib npm module
         //* latitude and longetude of Markcoders (24.899659, 67.109078)
+    //ToDo get user information as admin
+    //ToDo toggle user account active/inactive state
+        //* "/api/admin/toggleUserAccount?userId=xyz"
+    //ToDo add errors on registration page
+    //ToDo add companyId on registration page
+    //ToDo add Image on registration page
     
 //head backend
     //ToDo failed log in attempts
         //* will need its own database collection
         //* frontend sends email and password
         //* if password incorrect, x number of times, user cannot login anymore for a set amount of time
-    //ToDo log out after a period of time
-        //* session IDs, will need to experiment with jwt expiry
+
     //ToDo edit user profile as user
         //* there are three ways to do this
 
@@ -38,7 +41,6 @@
         //Done active/inactive
     //ToDo google account
         //! not possible due to the nature of the registration feature
-        
 //head hybrid
     //ToDo password strength as user
         //! not possible due to admin registration
@@ -52,6 +54,7 @@
 //? total net time for a specific time period
 //? required total time for a specific time period
 //? efficiency Percentage based on the formula: total net time spent in office/expected total net time spent in office*100
+//? admin can check in/ check out/break in/ break out for any user
 
 //Done login using email password
 //Done reset password
@@ -73,3 +76,7 @@
 //Done 6/6/24 generating a pdf using the data as an admin
 //Done 6/6/24 deactivate user account
     //* add active status on the user model
+//Done 7/6/24 log out after a period of time
+    //* session IDs, will need to experiment with jwt expiry
+//Done 7/6/24 remember me deletion after logout
+    //* clean cookies upon logout
