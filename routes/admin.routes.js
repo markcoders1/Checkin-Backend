@@ -18,4 +18,6 @@ router.route("/toggleUserAccount").get(verifyJWT,verifyAdmin,toggleUserAccount)
 
 router.route("/auto-check").post(autoCheck)
 
+router.route("/auto-check2").post(autoCheck)
+
 export default router
