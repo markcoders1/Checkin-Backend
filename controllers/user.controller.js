@@ -46,7 +46,9 @@ export const checkInOrCheckOut = async (req,res) =>{
 
         if(status==="checkout"){
           // check in
-          Attendance.create({userId:req.user.id,checkIn:new Date().valueOf()})
+          const attendance = Attendance.findOne({userId:req.user.id,date:new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate(), 1).valueOf()})
+          if(attendance) return res.status(400).json({message:"you've already checked in and out today"})
+          Attendance.create({userId:req.user.id,checkIn:new Date().valueOf(),date:new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate(), 1).valueOf()})
           user.status="checkin"
           await user.save()
           return res.status(200).json({"message":"checked in successfully","status":user.status})
