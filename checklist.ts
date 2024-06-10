@@ -42,6 +42,10 @@
         //Done active/inactive
     //ToDo google account
         //! not possible due to the nature of the registration feature
+    //ToDo forget checkout
+        // * run every 6 hours and check
+        // if any user has been checkin for 15 hours, make them checkout through cron
+        // flag their checkin so its duration is not counted in average
 //head hybrid
     //ToDo password strength as user
         //! not possible due to admin registration
@@ -85,8 +89,3 @@
     //* session IDs, will need to experiment with jwt expiry
 //Done 7/6/24 remember me deletion after logout
     //* clean cookies upon logout
-    //! not done in frontend
-//Done 11/6/24 forget checkout
-    //* run every 6 hours and check
-    //* if any user has been checkin for 15 hours, make them checkout through cron
-    //! flag their checkin so its duration is not counted in average

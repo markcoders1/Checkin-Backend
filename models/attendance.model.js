@@ -7,7 +7,8 @@ const AttendanceSchema = new mongoose.Schema({
     },
     date:{
         type:Number,
-        default:new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate(), 1).valueOf()
+        // unique: true,
+        // default:new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate(), 1).valueOf()
     },
     checkIn:{
         type:Number,
