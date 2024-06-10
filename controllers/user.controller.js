@@ -490,6 +490,10 @@ export const getAttendancePDF= async (req,res)=>{
 
 }
 
+export const isAdmin=async (req,res)=>{
+  res.status(200).json({isAdmin:req.user.role})
+}
+
 
 const updateDetailsJoi = Joi.object(  {
   firstName: Joi.string().max(30).messages({
