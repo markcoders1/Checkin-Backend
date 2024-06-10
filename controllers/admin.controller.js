@@ -328,21 +328,16 @@ export const toggleUserAccount=async (req,res)=>{
 
 export const autoCheck = async(req,res) =>{
 try {
-  //find users that are checked in
+  
   const usersCheckedIn= await User.find({status: "checkin"})
-  // find users inbreak
   const usersInBreak = await User.find({status: "inbreak"})
   // merge
   const users = usersCheckedIn.concat(usersInBreak);
-  console.log("These are users currently inbreak or checked in" , users);
   users.map(async (user)=>{
     
-    //status
     const status = user.status
-    console.log(status);
-
     //get user attendance by ID
-    const userAttendance = await Attendance.find({userId: user.id})
+    const userAttendance = await Attendance.find({userId: user.id ,date:{$gte: new Date(new Date()-1*60*60*24*1000)} })
     const  lastAttendance = userAttendance[userAttendance.length-1]
     console.log(lastAttendance);
 
@@ -370,6 +365,7 @@ try {
       console.log("user checked out and flagged");
       await lastAttendance.save()
       await user.save()
+
     } else {
       console.log("duration does not exceed 15 hours");
     }
