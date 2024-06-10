@@ -10,8 +10,17 @@
     "crons": [
       {
         "path": "/api/admin/auto-check",
-        "schedule": "0 3 * * *" 
-      }
+        "schedule": "0 19 * * *" 
+      },{
+         "path": "/api/admin/auto-check",
+         "schedule": "0 1 * * *" 
+      },{
+         "path": "/api/admin/auto-check", 
+         "schedule": "0 7 * * *" 
+       },{
+         "path": "/api/admin/auto-check",
+         "schedule": "0 13 * * *" 
+       }
     ]
   
  }
