@@ -16,6 +16,7 @@ router.route("/getAttendancePDF").get(verifyJWT,verifyAdmin,getAttendancePDF)
 
 router.route("/toggleUserAccount").get(verifyJWT,verifyAdmin,toggleUserAccount)
 
-router.route("/auto-check").post(autoCheck)
+router.route("/auto-check").get(autoCheck)
+
 
 export default router
