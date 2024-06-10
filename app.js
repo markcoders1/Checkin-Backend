@@ -10,7 +10,7 @@ const app = express();
 
 app.use(
   cors({
-    origin:"https://checkin-backend-rho.vercel.app",
+    origin:"https://hresque.vercel.app",
     credentials: true,
   })
 );
