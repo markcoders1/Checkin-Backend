@@ -339,14 +339,12 @@ try {
     //get user attendance by ID
     const userAttendance = await Attendance.find({userId: user.id ,date:{$gte: new Date(new Date()-1*60*60*24*1000)} })
     const  lastAttendance = userAttendance[userAttendance.length-1]
-    console.log(lastAttendance);
 
     //get duration
     const currentTime = new Date().valueOf()
     const duration = currentTime - lastAttendance.checkIn 
 
     if (duration > 15*60*60*1000) {
-      console.log("Found duration greater than 15 hours");
       //flag 
       lastAttendance.flag = true
       if (status == "inbreak") { //breakout first if inbreak
@@ -355,19 +353,15 @@ try {
         const breakInTime = lastAttendance.breakIn[lastAttendance.breakIn.length -1]
         lastAttendance.breakDuration = (breakOutTime - breakInTime) + lastAttendance.breakDuration
         user.status = "checkin"
-        console.log("user breakout successfully ");
       }
       //checkout
       lastAttendance.checkOut=new Date().valueOf()
       lastAttendance.totalDuration=lastAttendance.checkOut-lastAttendance.checkIn
       lastAttendance.netDuration = lastAttendance.totalDuration - lastAttendance.breakDuration
       user.status="checkout"
-      console.log("user checked out and flagged");
       await lastAttendance.save()
       await user.save()
 
-    } else {
-      console.log("duration does not exceed 15 hours");
     }
   })
   return res.status(200).json({message:"auto-checked successfully"})
