@@ -42,6 +42,10 @@
         //Done active/inactive
     //ToDo google account
         //! not possible due to the nature of the registration feature
+    //ToDo forget checkout
+        // * run every 6 hours and check
+        // if any user has been checkin for 15 hours, make them checkout cron
+        // flag their checkin so its duration is not counted
 //head hybrid
     //ToDo password strength as user
         //! not possible due to admin registration

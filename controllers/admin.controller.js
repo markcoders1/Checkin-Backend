@@ -322,6 +322,62 @@ export const toggleUserAccount=async (req,res)=>{
     await user.save()
     return res.status(200).json({message:"user account toggled successfully"})
   }catch(error){
-    return res.status(200).json({message:"something went wrong, please contact management"})
+    return res.status(400).json({message:"something went wrong, please contact management"})
   }
 }
+
+export const autoCheck = async(req,res) =>{
+try {
+  //find users that are checked in
+  const usersCheckedIn= await User.find({status: "checkin"})
+  // find users inbreak
+  const usersInBreak = await User.find({status: "inbreak"})
+  // merge
+  const users = usersCheckedIn.concat(usersInBreak);
+  console.log("These are users currently inbreak or checked in" , users);
+  users.map(async (user)=>{
+    
+    //status
+    const status = user.status
+    console.log(status);
+
+    //get user attendance by ID
+    const userAttendance = await Attendance.find({userId: user.id})
+    const  lastAttendance = userAttendance[userAttendance.length-1]
+    console.log(lastAttendance);
+
+    //get duration
+    const currentTime = new Date().valueOf()
+    const duration = currentTime - lastAttendance.checkIn 
+
+    if (duration > 15*60*60*1000) {
+      console.log("Found duration greater than 15 hours");
+      //flag 
+      lastAttendance.flag = true
+      if (status == "inbreak") { //breakout first if inbreak
+        lastAttendance.breakOut.push(new Date().valueOf())
+        const breakOutTime = lastAttendance.breakOut[lastAttendance.breakOut.length -1]
+        const breakInTime = lastAttendance.breakIn[lastAttendance.breakIn.length -1]
+        lastAttendance.breakDuration = (breakOutTime - breakInTime) + lastAttendance.breakDuration
+        user.status = "checkin"
+        console.log("user breakout successfully ");
+      }
+      //checkout
+      lastAttendance.checkOut=new Date().valueOf()
+      lastAttendance.totalDuration=lastAttendance.checkOut-lastAttendance.checkIn
+      lastAttendance.netDuration = lastAttendance.totalDuration - lastAttendance.breakDuration
+      user.status="checkout"
+      console.log("user checked out and flagged");
+      await lastAttendance.save()
+      await user.save()
+    } else {
+      console.log("duration does not exceed 15 hours");
+    }
+  })
+  return res.status(200).json({message:"auto-checked successfully"})
+
+} catch (error) {
+  return res.status(400).json({message:"something went wrong while auto-checking"}) 
+}
+}
+
