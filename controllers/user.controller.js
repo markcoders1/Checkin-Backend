@@ -489,3 +489,83 @@ export const getAttendancePDF= async (req,res)=>{
   }
 
 }
+
+
+const updateDetailsJoi = Joi.object(  {
+  firstName: Joi.string().max(30).messages({
+    "string.empty": "First name cannot be empty.",
+    "string.max": "User name should not exceed 30 characters.",
+  }),
+
+  lastName: Joi.string().max(30).messages({
+    "string.empty": "Last name cannot be empty.",
+    "string.max": "User name should not exceed 30 characters.",
+  }),
+
+  DOB: Joi.string()
+    .max(30)
+    .regex(/^((?:19|20)\d\d)-(0?[1-9]|1[012])-(0?[1-9]|[12][0-9]|3[01])$/)
+    .messages({
+      "string.max": "DOB should not exceed 30 characters.",
+      "string.pattern.base": "enter a valid DOB ex:(YYYY-MM-DD)",
+    }),
+
+  CNIC: Joi.string()
+    .regex(/^[0-9]{13}$/)
+    .length(13)
+    .messages({
+      "string.length": "enter a valid CNIC ex:(4230100000000)",
+      "string.pattern.base": "enter a valid CNIC ex:(4230100000000)",
+    }),
+
+  phone: Joi.string()
+    .regex(/^((\+92)?(0092)?(92)?(0)?)(3)([0-9]{9})$/)
+    .messages({
+      "string.pattern.base": "enter a valid Pakistani Phone number",
+    })
+}).or('firstName', 'lastName', 'CNIC', 'DOB', 'phone');
+
+export const updateProfile = async (req, res) => {
+  try {
+    const { firstName, lastName, DOB, CNIC, phone } = req.body; 
+    console.log("req.body: ", req.body);
+    console.log("req.user: ", req.user);
+
+    const {error} = updateDetailsJoi.validate(req.body);
+    if (error) {
+      console.log(error);
+      return res.status(400).json({ message: error.details });
+    }
+
+    if (firstName !== undefined) {
+      console.log("updating first name");
+        req.user.firstName = firstName
+    }
+    if (lastName!== undefined) {
+      console.log("updating last name");
+      req.user.lastName = lastName
+    }
+    if (DOB!== undefined) {
+      console.log("updating DOB");
+      req.user.DOB = DOB
+    }
+    if (CNIC!== undefined) {
+      console.log("updating CNIC");
+      req.user.CNIC = CNIC
+    }
+    if (phone!== undefined) {
+      console.log("updating phone");
+      req.user.phone = phone
+    }
+    
+    await req.user.save()
+
+    return res
+        .status(200)
+        .json(
+           {message:"Account details updated successfully"});
+  } catch (err) {
+    console.log(err);
+    return res.status(400).json({message:"something went wrong while updating user profile"})
+  }
+};

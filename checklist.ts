@@ -8,7 +8,7 @@
     //ToDo break reminder
         //* will need to experiment with notifications from browser
     //ToDo stay logged in
-        //* frontend will store token in redux
+        //* frontend will store token in localstorage
     //ToDo location validation using gps
         //* google geolib npm module
         //* latitude and longetude of Markcoders (24.899659, 67.109078)
@@ -42,10 +42,7 @@
         //Done active/inactive
     //ToDo google account
         //! not possible due to the nature of the registration feature
-    //ToDo forget checkout
-        // * run every 6 hours and check
-        // if any user has been checkin for 15 hours, make them checkout through cron
-        // flag their checkin so its duration is not counted in average
+  
 //head hybrid
     //ToDo password strength as user
         //! not possible due to admin registration
@@ -85,3 +82,7 @@
     //* session IDs, will need to experiment with jwt expiry
 //Done 7/6/24 remember me deletion after logout
     //* clean cookies upon logout
+//Done forget checkout
+    //* run every 6 hours and check
+    //* if any user has been checkin for 15 hours, make them checkout through cron
+    //! flag their checkin so its duration is not counted in average

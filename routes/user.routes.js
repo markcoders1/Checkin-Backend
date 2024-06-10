@@ -9,7 +9,8 @@ import {
     getUser,
     sendEmail,
     resetPassword,
-    getAttendancePDF
+    getAttendancePDF,
+    updateProfile
 } from "../controllers/user.controller.js";
 import { verifyJWT } from "../middleware/auth.middleware.js";
 import { autoCheck } from "../controllers/admin.controller.js";
@@ -37,6 +38,8 @@ router.route("/test").post(test)
 router.route("/send-email").post(verifyJWT, sendEmail)
 
 router.route("/reset-password").post(resetPassword);
+
+router.route("/update-profile").post(verifyJWT, updateProfile)
 
 
 
