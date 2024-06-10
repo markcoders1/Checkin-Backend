@@ -6,6 +6,12 @@
     ],
     "routes": [
        { "src": "/(.*)", "dest": "/index.js" }
+    ],
+    "crons": [
+      {
+        "path": "/api/admin/auto-check",
+        "schedule": "0 3 * * *" 
+      }
     ]
   
  }
