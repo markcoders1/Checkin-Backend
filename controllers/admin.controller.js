@@ -78,12 +78,23 @@ const registerUserJoi = Joi.object({
     "string.base": "role must be a string",
   }),
 
-  password: Joi.string().pattern(new RegExp("^[a-zA-Z0-9@]{5,30}$")).messages({
-    "string.pattern.base":
-      'Password must contain only letters, numbers, or "@" and be between 5 and 30 characters long.',
-  }),
+  password: Joi.string()
+    .pattern(
+      new RegExp(
+        "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{6,30}$"
+      )
+    )
+    .required()
+    .messages({
+      "string.pattern.base":
+        "Password must be between 6 and 30 characters long, and include at least one uppercase letter, one lowercase letter, one number, and one special character.",
+      "any.required": "Password is required.",
+    }),
 
-  confirmPassword: Joi.ref("password"),
+  confirmPassword: Joi.string().valid(Joi.ref("password")).required().messages({
+    "any.only": "Confirm password does not match password.",
+    "any.required": "confirmPassword is required.",
+  }),
 
   email: Joi.string().email().required().messages({
     "any.required": "Email is required.",

@@ -241,7 +241,7 @@ export const resetPassword = async (req,res) =>{
     console.log('User found:', user);
 
     const emailToSendOTP =  user.email
-    const otp = generateOTP(6)
+    const otp = generateOTP()
     console.log(`Trying to send OTP "${otp}" to ${emailToSendOTP} now`);
     
 
@@ -274,14 +274,30 @@ export const resetPassword = async (req,res) =>{
 }
 
 const changePasswordJoi = Joi.object({
-  oldPassword: Joi.string().pattern(new RegExp("^[a-zA-Z0-9@]{5,30}$")).messages({
-    "string.pattern.base":
-      'Old Password must contain only letters, numbers, or "@" and be between 5 and 30 characters long.',
-  }),
-  newPassword: Joi.string().pattern(new RegExp("^[a-zA-Z0-9@]{5,30}$")).messages({
-    "string.pattern.base":
-      'New Password must contain only letters, numbers, or "@" and be between 5 and 30 characters long.',
-  })
+  oldPassword: Joi.string()
+    .pattern(
+      new RegExp(
+        "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{6,30}$"
+      )
+    )
+    .required()
+    .messages({
+      "string.pattern.base":
+        "oldPassword must be between 6 and 30 characters long, and include at least one uppercase letter, one lowercase letter, one number, and one special character.",
+      "any.required": "Password is required.",
+    }),
+  newPassword: Joi.string()
+    .pattern(
+      new RegExp(
+        "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{6,30}$"
+      )
+    )
+    .required()
+    .messages({
+      "string.pattern.base":
+        "newPassword must be between 6 and 30 characters long, and include at least one uppercase letter, one lowercase letter, one number, and one special character.",
+      "any.required": "Password is required.",
+    }),
 });
 
 
@@ -304,7 +320,7 @@ export const changeCurrentPassword =async (req, res) => {
     
         const isPasswordCorrect = await user.isPasswordCorrect(oldPassword); 
         if (!isPasswordCorrect) {
-          return res.status(400).json({message:"password is incorrect"})
+          return res.status(400).json({message:"oldPassword is incorrect"})
         }
         user.password = newPassword;
     
@@ -567,7 +583,7 @@ export const updateProfile = async (req, res) => {
       req.user.phone = phone
     }
     
-    await req.user.save()
+   await req.user.save()
 
     return res
         .status(200)

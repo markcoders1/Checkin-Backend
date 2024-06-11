@@ -105,7 +105,12 @@ export const refreshAccessToken=(req,res)=>{
 export const logoutUser=(req,res)=>{
     try{
         const {refreshToken} = req.body
+        if (!refreshToken) {
+            return res.status(400).json({message:"Token not found"})
+        }
+        
         jwt.verify(refreshToken,process.env.REFRESH_TOKEN_SECRET,async (err,decoded)=>{
+
             const user = await User.findOne({email:decoded.email})
             user.refreshToken=""
             user.save()
