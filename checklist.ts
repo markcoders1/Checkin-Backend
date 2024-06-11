@@ -8,7 +8,7 @@
     //ToDo break reminder
         //* will need to experiment with notifications from browser
     //ToDo stay logged in
-        //* frontend will store token in redux
+        //* frontend will store token in localstorage
     //ToDo location validation using gps
         //* google geolib npm module
         //* latitude and longetude of Markcoders (24.899659, 67.109078)
@@ -69,6 +69,8 @@
 //Done list of all users as admin
 //Done view user profile as user
 //Done change password
+    //! not done in frontend
+    //! important
 //Done break start
 //Done break end
 //Done break time summaries
@@ -78,9 +80,12 @@
 //Done attendance records as admin
 //Done personal attendance history
 //Done 6/6/24 generating a pdf using the data as a user
+    //! not done in frontend
 //Done 6/6/24 generating a pdf using the data as an admin
+    //! not done in frontend
 //Done 6/6/24 deactivate user account
     //* add active status on the user model
+    //! not done in frontend
 //Done 7/6/24 log out after a period of time
     //* session IDs, will need to experiment with jwt expiry
 //Done 7/6/24 remember me deletion after logout

@@ -36,7 +36,7 @@ const registerUserJoi = Joi.object({
     .required()
     .regex(/^[0-9]{13}$/)
     .length(13)
-    .message({
+    .messages({
       "string.length": "enter a valid CNIC ex:(4230100000000)",
       "string.pattern.base": "enter a valid CNIC ex:(4230100000000)",
     }),
@@ -44,7 +44,7 @@ const registerUserJoi = Joi.object({
   phone: Joi.string()
     .required()
     .regex(/^((\+92)?(0092)?(92)?(0)?)(3)([0-9]{9})$/)
-    .message({
+    .messages({
       "string.pattern.base": "enter a valid Pakistani Phone number",
     }),
 
