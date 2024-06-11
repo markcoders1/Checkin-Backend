@@ -10,7 +10,7 @@ const app = express();
 
 app.use(
   cors({
-    origin:"https://hresque.vercel.app",
+    origin:["https://hresque.vercel.app","*","http://localhost"],
     credentials: true,
   })
 );
