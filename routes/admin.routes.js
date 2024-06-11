@@ -1,5 +1,5 @@
 import { Router } from "express";
-import {registerUser,getUserAttendance, getUser, getAllUsers, getAttendancePDF, toggleUserAccount, autoCheck} from "../controllers/admin.controller.js";
+import {registerUser,getUserAttendance, getUser, getAllUsers, getAttendancePDF, toggleUserAccount, autoCheck, updateAnyProfile} from "../controllers/admin.controller.js";
 import { verifyJWT,verifyAdmin } from "../middleware/auth.middleware.js";
 
 const router = Router();
@@ -18,5 +18,6 @@ router.route("/toggleUserAccount").get(verifyJWT,verifyAdmin,toggleUserAccount)
 
 router.route("/auto-check").get(autoCheck)
 
+router.route("/update-any-profile").get(verifyJWT,verifyAdmin,updateAnyProfile)
 
 export default router

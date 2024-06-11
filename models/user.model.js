@@ -90,8 +90,6 @@ userSchema.pre('save', async function(next) {
     next();
 });
 
-
-//custom method banaya hai
 userSchema.methods.isPasswordCorrect = async function (password) {
     return await bcrypt.compare(password, this.password);
 };
@@ -123,4 +121,3 @@ userSchema.methods.generateRefreshToken = function () {
 };
 
 export const User = mongoose.model("User", userSchema);
-// yeh User database se direct contact kar sakta hai because it is made with mongoose.

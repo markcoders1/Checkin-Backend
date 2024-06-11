@@ -7,6 +7,7 @@ import {jsPDF} from "jspdf";
 import 'jspdf-autotable'
 import { unixTo24Time, unixToDate, unixToTime } from "../utils/utils.js";
 import * as fs from 'fs'
+import { uppercaseFirstLetter } from "../utils/utils.js";
 
 
 // export const test=async (req,res)=>{
@@ -544,10 +545,12 @@ export const updateProfile = async (req, res) => {
     }
 
     if (firstName !== undefined) {
+      firstName = uppercaseFirstLetter(firstName);
       console.log("updating first name");
         req.user.firstName = firstName
     }
     if (lastName!== undefined) {
+      lastName = uppercaseFirstLetter(lastName);
       console.log("updating last name");
       req.user.lastName = lastName
     }

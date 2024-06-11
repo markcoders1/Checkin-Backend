@@ -26,14 +26,6 @@
         //* frontend sends email and password
         //* if password incorrect, x number of times, user cannot login anymore for a set amount of time
 
-    //ToDo edit user profile as user
-        //* there are three ways to do this
-
-        //* 1. to make multiple apis, one for each field
-        //* 2. to make one api, with many if conditionals to change all
-        //* 3. make one api that updates everything all at once, even if nothing has changed
-    //ToDo update user details as admin
-        //* same as above
     //ToDo account activity monitoring
         //* add account logs for each user on a seperate database model
     //ToDo additional information
@@ -90,3 +82,7 @@
     //* session IDs, will need to experiment with jwt expiry
 //Done 7/6/24 remember me deletion after logout
     //* clean cookies upon logout
+//Done edit user profile as user
+    //* made one Api that accepts atleast one from (firstName, lastName, CNIC , DOB, phone)
+//Done update any user details as admin
+    //* made one Api that accepts id and atleast one other field and updates it (except password, status, active, image, _id)

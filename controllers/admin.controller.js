@@ -371,3 +371,131 @@ try {
 }
 }
 
+
+const updateAnyProfileJoi = Joi.object({
+
+  id: Joi.string().required().max(30).min(10).messages({
+    "any.required": "id is required.",
+    "string.empty": "id cannot be empty.",
+    "string.max": "id should not exceed 30 characters.",
+    "string.min": "id should be more than 10 characters.",
+  }),
+  firstName: Joi.string().max(30).messages({
+    "string.empty": "First name cannot be empty.",
+    "string.max": "User name should not exceed 30 characters.",
+  }),
+
+  lastName: Joi.string().max(30).messages({
+    "string.empty": "Last name cannot be empty.",
+    "string.max": "User name should not exceed 30 characters.",
+  }),
+
+  companyId: Joi.string().messages({
+    "string.empty": "companyId cannot be empty.",
+  }),
+
+  DOB: Joi.string()
+    .max(30)
+    .regex(/^((?:19|20)\d\d)-(0?[1-9]|1[012])-(0?[1-9]|[12][0-9]|3[01])$/)
+    .messages({
+      "string.empty": "DOB cannot be empty.",
+      "string.max": "DOB should not exceed 30 characters.",
+      "string.pattern.base": "enter a valid DOB ex:(YYYY-MM-DD)",
+    }),
+
+  CNIC: Joi.string()
+    .regex(/^[0-9]{13}$/)
+    .length(13)
+    .messages({
+      "string.length": "enter a valid CNIC ex:(4230100000000)",
+      "string.pattern.base": "enter a valid CNIC ex:(4230100000000)",
+    }),
+
+  phone: Joi.string()
+    .regex(/^((\+92)?(0092)?(92)?(0)?)(3)([0-9]{9})$/)
+    .messages({
+      "string.pattern.base": "enter a valid Pakistani Phone number",
+    }),
+
+  designation: Joi.string().max(30).messages({
+    "string.empty": "designation cannot be empty.",
+    "string.max": "designation should not exceed 30 characters.",
+  }),
+
+  teamLead: Joi.string().max(30).messages({
+    "string.empty": "teamLead cannot be empty.",
+    "string.max": "teamLead should not exceed 30 characters.",
+  }),
+
+  shift: Joi.string().max(30).messages({
+    "string.empty": "shift cannot be empty.",
+    "string.max": "shift should not exceed 30 characters.",
+  }),
+
+  department: Joi.string().max(30).messages({
+    "string.empty": "department cannot be empty.",
+    "string.max": "department should not exceed 30 characters.",
+  }),
+
+  role: Joi.string().valid("admin", "user").messages({
+    "any.only": "role must be either admin or user",
+    "string.base": "role must be a string",
+  }),
+
+  email: Joi.string().email().messages({
+    "string.empty": "Email cannot be empty.",
+    "string.email": "Invalid email format.",
+  }),
+}).or('firstName', 'lastName', 'companyId', 'CNIC', 'DOB', 'phone', 'email', 'designation', 'teamLead', 'shift', 'department', 'role');
+
+// Function to update specific User's details with the values provided by Admin
+const updateObject = (target, updates) => { 
+  for (const key in updates) {
+    if (updates.hasOwnProperty(key)) {
+      // Skip the _id update
+      if (key === 'id') {
+        continue;
+      }
+      target[key] = updates[key];
+    }
+  }
+};
+
+export const updateAnyProfile = async (req,res) => {
+try {
+  
+  if (req.user.role !== "admin") {
+    res.status(401).json({ message: "Unauthorized" });
+  }
+ //joi validate 
+ const { error, value } = updateAnyProfileJoi.validate(req.body);
+ if (error) {
+   console.log(error);
+   return res.status(400).json({ message: error.details });
+ }
+  // Filter out the fields that are present in the request body
+  const presentFields = Object.keys(value).filter(key => value[key] !== undefined);
+
+  // Create an object with only the present fields
+  const updateFields = presentFields.reduce((acc, key) => {
+    acc[key] = value[key];
+    return acc;
+  }, {});
+  console.log("valid details detected: ", updateFields );
+
+ // find user by id
+  const user = await User.findById({
+    _id: updateFields.id
+  }).select("-password -refreshToken -__v -active -status -image");
+
+  //update user
+  updateObject(user, updateFields); 
+  console.log("User: ",user);
+  await user.save();
+
+  return res.status(200).json({message:"Specific User details updated Successfully", user});
+
+} catch (error) {
+  return res.status(400).json({message:"something went wrong while updating specific user profile", error}) 
+}
+};
