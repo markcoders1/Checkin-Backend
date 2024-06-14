@@ -45,7 +45,7 @@ export const checkInOrCheckOut = async (req, res) => {
 
 		if (status === "checkout") {
 			// check in
-			const attendance = Attendance.findOne({
+			const attendance = await Attendance.findOne({
 				userId: req.user.id,
 				date: new Date(
 					new Date().getFullYear(),
