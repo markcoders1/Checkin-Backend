@@ -12,13 +12,29 @@ export const transporterConstructor = () => {
   return transporter;
 };
 
-export const generateOTP=(otpLength) =>{
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+export const generateOTP = () => {
+  const otpLength = 6;
+  const upperCaseChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const lowerCaseChars = 'abcdefghijklmnopqrstuvwxyz';
+  const digitChars = '0123456789';
+  const specialChars = '@$!%*?&';
+  const allChars = upperCaseChars + lowerCaseChars + digitChars + specialChars;
+
   let otp = '';
-  for (let i = 0; i < otpLength; i++) {
-      const randomIndex = Math.floor(Math.random() * characters.length);
-      otp += characters[randomIndex];
+  otp += upperCaseChars[Math.floor(Math.random() * upperCaseChars.length)];
+  otp += lowerCaseChars[Math.floor(Math.random() * lowerCaseChars.length)];
+  otp += digitChars[Math.floor(Math.random() * digitChars.length)];
+  otp += specialChars[Math.floor(Math.random() * specialChars.length)];
+
+  // Add remaining 2 characters to meet the desired length 6
+  for (let i = 4; i < otpLength; i++) {
+    const randomIndex = Math.floor(Math.random() * allChars.length);
+    otp += allChars[randomIndex];
   }
-  console.log("Generated OTP: ",otp);
+
+  // Shuffle the OTP to ensure the first 4 characters are not in a predictable pattern
+  otp = otp.split('').sort(() => 0.5 - Math.random()).join('');
+
+  console.log("Generated OTP: ", otp);
   return otp;
 };

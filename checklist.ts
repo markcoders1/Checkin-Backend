@@ -26,14 +26,6 @@
         //* frontend sends email and password
         //* if password incorrect, x number of times, user cannot login anymore for a set amount of time
 
-    //ToDo edit user profile as user
-        //* there are three ways to do this
-
-        //* 1. to make multiple apis, one for each field
-        //* 2. to make one api, with many if conditionals to change all
-        //* 3. make one api that updates everything all at once, even if nothing has changed
-    //ToDo update user details as admin
-        //* same as above
     //ToDo account activity monitoring
         //* add account logs for each user on a seperate database model
     //ToDo additional information
@@ -42,12 +34,9 @@
         //Done active/inactive
     //ToDo google account
         //! not possible due to the nature of the registration feature
-    //ToDo forget checkout
-        // * run every 6 hours and check
-        // if any user has been checkin for 15 hours, make them checkout through cron
-        // flag their checkin so its duration is not counted in average
 //head hybrid
     //ToDo password strength as user
+        //Done added password complexity check in joi at registerUser and changePassword and generateOTP in resetPassword
         //! not possible due to admin registration
         //* possible on change password
     //ToDo log out from all devices
@@ -90,3 +79,12 @@
     //* session IDs, will need to experiment with jwt expiry
 //Done 7/6/24 remember me deletion after logout
     //* clean cookies upon logout
+//Done forget checkout
+    // * run every 6 hours and check using Easycron cron job
+    // if any user has been checkin for 15 hours, make them checkout through cron
+    // flag their checkin  
+    //! missing: to not include the flagged attendance while calculating average
+//Done edit user profile as user
+    //* made one Api that accepts atleast one from (firstName, lastName, CNIC , DOB, phone) and updates current user
+//Done update any user details as admin
+    //* made one Api that accepts id and atleast one other field and updates it (except password, status, active, image, _id)
