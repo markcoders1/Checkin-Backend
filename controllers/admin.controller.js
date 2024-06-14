@@ -2,6 +2,9 @@ import { User } from "../models/user.model.js";
 import { Attendance } from "../models/attendance.model.js";
 import { uppercaseFirstLetter } from "../utils/utils.js";
 import Joi from "joi";
+import {jsPDF} from "jspdf";
+import { unixToDate, unixToTime, unixTo24Time } from "../utils/utils.js";
+import fs from "fs";
 
 const registerUserJoi = Joi.object({
 	firstName: Joi.string().required().max(30).messages({
@@ -145,7 +148,7 @@ export const getUserAttendance = async (req, res) => {
 		let { from, to, userId } = req.query;
 
 		if (!userId) {
-			return res.status(400).json({ message: "please enter an ID" });
+			return res.status(400).json({ message: "please enter a userId" });
 		}
 		if (!from) {
 			from = new Date(date.getFullYear(), date.getMonth(), 1).valueOf();
@@ -221,7 +224,6 @@ export const getAttendancePDF = async (req, res) => {
 		} else if (to - from > 2678400000) {
 			to = from + 2678400000;
 		}
-
 		if (!userId) {
 			userId = req.user.id;
 			user = req.user;
