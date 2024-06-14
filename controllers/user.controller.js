@@ -45,7 +45,7 @@ export const checkInOrCheckOut = async (req, res) => {
 
 		if (status === "checkout") {
 			// check in
-			const attendance = Attendance.findOne({
+			const attendance = await Attendance.findOne({
 				userId: req.user.id,
 				date: new Date(
 					new Date().getFullYear(),
@@ -54,6 +54,9 @@ export const checkInOrCheckOut = async (req, res) => {
 					1
 				).valueOf(),
 			});
+			
+			console.log("This is Attendance: ",attendance)
+
 			if (attendance)
 				return res.status(400).json({
 					message: "you've already checked in and out today",
