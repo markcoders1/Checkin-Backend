@@ -75,6 +75,9 @@ export const loginUser = async (req, res) => {
 
 export const adminLogin = (req, res) => {
 	try {
+
+		
+
 	} catch (err) {
 		return res.status(400).json({ message: "error", err });
 	}
