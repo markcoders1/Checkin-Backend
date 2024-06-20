@@ -54,10 +54,10 @@ export const checkInOrCheckOut = async (req, res) => {
 					1
 				).valueOf(),
 			});
-			if (attendance)
-				return res.status(400).json({
-					message: "you've already checked in and out today",
-				});
+			// if (attendance)
+			// 	return res.status(400).json({
+			// 		message: "you've already checked in and out today",
+			// 	});
 			Attendance.create({
 				userId: req.user.id,
 				checkIn: new Date().valueOf(),
