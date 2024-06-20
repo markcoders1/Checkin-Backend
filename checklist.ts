@@ -88,3 +88,11 @@
     //* made one Api that accepts atleast one from (firstName, lastName, CNIC , DOB, phone) and updates current user
 //Done update any user details as admin
     //* made one Api that accepts id and atleast one other field and updates it (except password, status, active, image, _id)
+
+
+// frontend -> data (latitude longetude) -> backend 
+
+// frontend calls api to backend
+// backend responds with a code
+// use code to encrypt data
+// call the longetude/latetude api, and send the encrypted data there
