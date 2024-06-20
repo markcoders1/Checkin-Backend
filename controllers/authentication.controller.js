@@ -75,6 +75,9 @@ export const loginUser = async (req, res) => {
 
 export const adminLogin = (req, res) => {
 	try {
+
+		
+
 	} catch (err) {
 		return res.status(400).json({ message: "error", err });
 	}
@@ -128,7 +131,7 @@ export const logoutUser = (req, res) => {
 			}
 		);
 
-		res.sendStatus(200);
+		res.status(200).json({message:"User logged out successfully"});
 	} catch (err) {
 		console.log(err);
 		return res.status(400).json({ message: "error", err });

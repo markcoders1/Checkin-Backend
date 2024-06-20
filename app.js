@@ -51,7 +51,7 @@ app.use(cookieParser());
 app.use("/api/auth",authRouter)
 app.use("/api", userRouter);
 app.use("/api/admin",adminRouter)
-app.use("*",(req,res)=>res.status(404).json({error:"route not found",code:404}))
+app.use("[*, https://hresque.vercel.app/]",(req,res)=>res.status(404).json({error:"route not found",code:404}))
 
 
 
