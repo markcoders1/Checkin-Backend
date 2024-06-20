@@ -22,8 +22,6 @@ const authenticateToken = (req, res, next) => {
 
 const router=Router()
 
-router.route("/protectedRoute").get(authenticateToken,(req,res)=>res.status(200).json({message:"Hi"}))
-
 router.route("/login").post(loginUser)
 
 router.route("/adminLogin").post(adminLogin)

@@ -3,118 +3,137 @@ import jwt from "jsonwebtoken";
 import Joi from "joi";
 
 const loginUserJoi = Joi.object({
-    email: Joi.string().email().required().messages({
-      "any.required": "Email is required.",
-      "string.empty": "Email cannot be empty.",
-      "string.email": "Invalid email format.",
-    }),
-  
-    password: Joi.string().pattern(new RegExp("^[a-zA-Z0-9@]{5,30}$")).messages({
-      "string.pattern.base":
-        'Password must contain only letters, numbers, or "@" and be between 5 and 30 characters long.',
-    })
+	email: Joi.string().email().required().messages({
+		"any.required": "Email is required.",
+		"string.empty": "Email cannot be empty.",
+		"string.email": "Invalid email format.",
+	}),
+
+	password: Joi.string()
+		.pattern(new RegExp("^[a-zA-Z0-9@]{5,30}$"))
+		.messages({
+			"string.pattern.base":
+				'Password must contain only letters, numbers, or "@" and be between 5 and 30 characters long.',
+		}),
 });
 
 const generateAccessAndRefreshToken = async (userId) => {
+	try {
+		const user = await User.findById(userId);
+		const accessToken = user.generateAccessToken();
+		const refreshToken = user.generateRefreshToken();
 
-    try {
-      const user = await User.findById(userId); 
-      const accessToken = user.generateAccessToken();
-      const refreshToken = user.generateRefreshToken();
-  
-      user.refreshToken = refreshToken;
-      await user.save({ validateBeforeSave: false });
-  
-      return { accessToken, refreshToken };
-    } catch (error) {
-      throw new Error(
-        "Something went wrong while generating Access and Refresh Tokens"
-      );
-    }
-  };
+		user.refreshToken = refreshToken;
+		await user.save({ validateBeforeSave: false });
 
-export const loginUser=async (req,res)=>{
-    try{
-        const {email,password} = req.body
-        const {error} = loginUserJoi.validate(req.body);
-        if (error) {
-            console.log(error);
-            return res.status(400).json({ message: error.details});
-        }
-        
+		return { accessToken, refreshToken };
+	} catch (error) {
+		throw new Error(
+			"Something went wrong while generating Access and Refresh Tokens"
+		);
+	}
+};
 
-        const user = await User.findOne({email:email});
-        if (!user) {
-         return res.status(400).json({message:"user not found"})
-        }
-        if(!user.active){
-         return res.status(400).json({message:"your account has been deactivated"})
-        }
+export const loginUser = async (req, res) => {
+	try {
+		const { email, password } = req.body;
+		const { error } = loginUserJoi.validate(req.body);
+		if (error) {
+			console.log(error);
+			return res.status(400).json({ message: error.details });
+		}
 
-        const isPasswordValid = await user.isPasswordCorrect(password);
-        if (!isPasswordValid) {
-            return res.status(400).json({message:"email or password incorrect"})
-        }
+		const user = await User.findOne({ email: email });
+		if (!user) {
+			return res.status(400).json({ message: "user not found" });
+		}
+		if (!user.active) {
+			return res
+				.status(400)
+				.json({ message: "your account has been deactivated" });
+		}
 
-        const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
-            user._id
-        );
+		const isPasswordValid = await user.isPasswordCorrect(password);
+		if (!isPasswordValid) {
+			return res
+				.status(400)
+				.json({ message: "email or password incorrect" });
+		}
 
-        return res
-            .status(200)
-            .json({
-               "message":"logged in successfully",
-               accessToken,
-               refreshToken
-            })
+		const { accessToken, refreshToken } =
+			await generateAccessAndRefreshToken(user._id);
 
-    }catch(err){
-        return res.status(400).json({message:"error",err})
-    }
-}
+		return res.status(200).json({
+			message: "logged in successfully",
+			accessToken,
+			refreshToken,
+		});
+	} catch (err) {
+		return res.status(400).json({ message: "error", err });
+	}
+};
 
-export const adminLogin=(req,res)=>{
-    try{
+export const adminLogin = (req, res) => {
+	try {
 
-    }catch(err){
-        return res.status(400).json({message:"error",err})
-    }
-}
+		
 
-export const refreshAccessToken=(req,res)=>{
-    try{
-        const {refreshToken} =req.body
-        
-        if (refreshToken==null) return res.sendStatus(403)
-        
-        jwt.verify(refreshToken,process.env.REFRESH_TOKEN_SECRET,async (err,decoded)=>{
-            if(err) return res.sendStatus(403);
-            const user = await User.findOne({email:decoded.email})
-            if(user.refreshToken!==refreshToken) return res.sendStatus(403);
+	} catch (err) {
+		return res.status(400).json({ message: "error", err });
+	}
+};
 
-            const accessToken =jwt.sign({email:decoded.email},process.env.ACCESS_TOKEN_SECRET,{expiresIn:"15s"})
-            res.status(200).json({message:"access Token refreshed",accessToken})
+export const refreshAccessToken = (req, res) => {
+	try {
+		const { refreshToken } = req.body;
 
-        })
+		if (refreshToken == null) return res.sendStatus(403);
 
-    }catch(err){
-        return res.status(400).json({message:"error",err})
-    }
-}
+		jwt.verify(
+			refreshToken,
+			process.env.REFRESH_TOKEN_SECRET,
+			async (err, decoded) => {
+				if (err) return res.sendStatus(403);
+				const user = await User.findOne({ email: decoded.email });
+				if (user.refreshToken !== refreshToken)
+					return res.sendStatus(403);
 
-export const logoutUser=(req,res)=>{
-    try{
-        const {refreshToken} = req.body
-        jwt.verify(refreshToken,process.env.REFRESH_TOKEN_SECRET,async (err,decoded)=>{
-            const user = await User.findOne({email:decoded.email})
-            user.refreshToken=""
-            user.save()
-        })
+				const accessToken = jwt.sign(
+					{ email: decoded.email },
+					process.env.ACCESS_TOKEN_SECRET,
+					{ expiresIn: "15s" }
+				);
+				res.status(200).json({
+					message: "access Token refreshed",
+					accessToken,
+				});
+			}
+		);
+	} catch (err) {
+		return res.status(400).json({ message: "error", err });
+	}
+};
 
-        res.sendStatus(200);
-    }catch(err){
-        console.log(err);
-        return res.status(400).json({message:"error",err})
-    }
-}
+export const logoutUser = (req, res) => {
+	try {
+		const { refreshToken } = req.body;
+		if (!refreshToken) {
+			return res.status(400).json({ message: "Token not found" });
+		}
 
+		jwt.verify(
+			refreshToken,
+			process.env.REFRESH_TOKEN_SECRET,
+			async (err, decoded) => {
+				const user = await User.findOne({ email: decoded.email });
+				user.refreshToken = "";
+				user.save();
+			}
+		);
+
+		res.status(200).json({message:"User logged out successfully"});
+	} catch (err) {
+		console.log(err);
+		return res.status(400).json({ message: "error", err });
+	}
+};
