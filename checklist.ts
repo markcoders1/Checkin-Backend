@@ -34,6 +34,15 @@
         //Done active/inactive
     //ToDo google account
         //! not possible due to the nature of the registration feature
+    //ToDo password reset with link
+    // reset password 
+    // server makes a new token with payload and secret 
+    // email that token in url form
+    // that url hits an api for get request 
+    // params will return token 
+    // verify then check if its in database the token
+    // verify then delete then change password
+    // 
 //head hybrid
     //ToDo password strength as user
         //Done added password complexity check in joi at registerUser and changePassword and generateOTP in resetPassword

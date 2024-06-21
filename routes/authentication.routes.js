@@ -4,6 +4,8 @@ import {
     loginUser,
     logoutUser,
     adminLogin,
+    resetPassword,
+    // changePassword
 } from '../controllers/authentication.controller.js'
 import jwt from 'jsonwebtoken'
 
@@ -29,5 +31,9 @@ router.route("/adminLogin").post(adminLogin)
 router.route("/token").post(refreshAccessToken);
 
 router.route("/logout").post(logoutUser)
+
+router.route("/reset-password").get(resetPassword);
+
+// router.route("/reset-password").post(changePassword); 
 
 export default router

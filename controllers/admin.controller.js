@@ -502,11 +502,6 @@ const updateAnyProfileJoi = Joi.object({
 		"string.max": "department should not exceed 30 characters.",
 	}),
 
-	role: Joi.string().valid("admin", "user").messages({
-		"any.only": "role must be either admin or user",
-		"string.base": "role must be a string",
-	}),
-
 	email: Joi.string().email().messages({
 		"string.empty": "Email cannot be empty.",
 		"string.email": "Invalid email format.",
@@ -522,8 +517,7 @@ const updateAnyProfileJoi = Joi.object({
 	"designation",
 	"teamLead",
 	"shift",
-	"department",
-	"role"
+	"department"
 );
 
 // Function to update specific User's details with the values provided by Admin
@@ -565,7 +559,7 @@ export const updateAnyProfile = async (req, res) => {
 		// find user by id
 		const user = await User.findById({
 			_id: updateFields.id,
-		}).select("-password -refreshToken -__v -active -status -image");
+		}).select("-password -refreshToken -__v -active -status -role -image");
 
 		//update user
 		updateObject(user, updateFields);
