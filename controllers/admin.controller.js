@@ -207,6 +207,38 @@ export const getUser = async (req, res) => {
 	}
 };
 
+export const deleteUser = async (req, res) => {
+	try {
+		if (req.user.role !== "admin") {
+			res.status(401).json({ message: "Unauthorized" });
+		}
+		const userId = req.query.id;
+		if (typeof userId !== "string") {
+			console.log("ID must be string");
+			return res.status(401).json({ message: "ID must be string" });
+		}
+		const user = await User.findById(userId);
+		if (!user) {
+			console.log("user does not exist");
+			return res.status(401).json({ message: "user does not exist" });
+		}
+		console.log("User detected: ",user);
+
+		//deleting user
+		const deletedUser = await User.deleteOne({ _id: userId});
+		console.log("Deleted user: ", deletedUser);
+
+		//deleting user attendance
+		const deletedAttendance = await Attendance.deleteMany({userId: userId})
+		console.log("Deleted user Attendance: ", deletedAttendance )
+
+		return res.status(200).json({ message : "User deleted Successfully" });
+	} catch (error) {
+		console.log(error);
+		res.status(400).json({ error });
+	}
+};
+
 export const getAttendancePDF = async (req, res) => {
 	try {
 		let { from, to, userId } = req.query;

@@ -10,12 +10,18 @@ const loginUserJoi = Joi.object({
 		"string.empty": "Email cannot be empty.",
 		"string.email": "Invalid email format.",
 	}),
-
-	password: Joi.string()
-		.pattern(new RegExp("^[a-zA-Z0-9@]{5,30}$"))
+		//updated
+		password: Joi.string()
+		.pattern(
+			new RegExp(
+				"^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{6,30}$"
+			)
+		)
+		.required()
 		.messages({
 			"string.pattern.base":
-				'Password must contain only letters, numbers, or "@" and be between 5 and 30 characters long.',
+				"Password must be between 6 and 30 characters long, and include at least one uppercase letter, one lowercase letter, one number, and one special character.",
+			"any.required": "Password is required.",
 		}),
 });
 
@@ -153,12 +159,12 @@ const resetPasswordJoi = Joi.object({
 });
 
 export const resetPassword = async (req, res) => {
-	// 1. take email from user (req.body)
+	// 1. take email from user
 	// 2. check if its a valid email address using joi
 	// 3. find a user with that email in database
 	// 4. generate a new token
-	// 5. send email with link made with that token (generated via frontend) 
-	// 
+	// 5. send email with link made with that token
+	
 	try {
 		console.log(req.body);
 
@@ -180,34 +186,14 @@ export const resetPassword = async (req, res) => {
 		console.log(process.env.PASSWORD_TOKEN_SECRET);
 		// generate a token using jwt
 		const resetToken = jwt.sign({email:req.body.email},process.env.PASSWORD_TOKEN_SECRET,{"expiresIn":'5m'})
-
-		console.log("----------------------");
 		
 		const link = `hresque.vercel.app/password-reset?token=${resetToken}`;
 		console.log("LINK: ",link);
 
-
 		const emailToSendOTP = user.email;
 		console.log(`Trying to send email to ${emailToSendOTP} now`);
-
-		// Email defined here
-		// const theEmail = {
-		// 	from: process.env.APP_EMAIL,
-		// 	to: emailToSendOTP,
-		// 	subject: "Reset Password",
-		// 	template:reset-password,
-		// 	html: `
-		// 	  <p>Hi ${user.firstName} ${user.lastName},</p>
-
-		// 	  <p>You requested to reset your password.</p>
-
-		// 	  <p>Please click the link below to reset your password.</p>
-
-		// 	  <p><a href="${link}">Reset</a></p>
-		// 	`,
-		//   };
 		
-// Define the email options
+		// Define the email options
 		const theEmail = {
 		from: process.env.APP_EMAIL,
 		to: emailToSendOTP,
@@ -231,13 +217,8 @@ export const resetPassword = async (req, res) => {
 		await transporter.sendMail(theEmail, (error) => {
 			if (error) return res.status(400).json({ "Email not sent": error });
 		});
-
-		console.log("Email with Link has been sent successfully");
-
-		// //change password after email is sent with code
-		// user.password = otp;
-		// await user.save({ validateBeforeSave: false });
 		console.log("password reset link has been emailed successfully");
+
 		res.status(200).json({
 			message:
 				"password reset link has been emailed successfully",

@@ -97,3 +97,5 @@
     //* made one Api that accepts atleast one from (firstName, lastName, CNIC , DOB, phone) and updates current user
 //Done update any user details as admin
     //* made one Api that accepts id and atleast one other field and updates it (except password, status, active, image, _id)
+//Done delete user 
+    //* made one Api for admin that takes id of any user and deletes said user along with their attendance
