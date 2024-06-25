@@ -14,9 +14,11 @@ const loginUserJoi = Joi.object({
 	password: Joi.string()
 		.required()
 		.min(6)
+		.max(30)
 		.messages({
 			"string.min": "Password should be minimum 6 characters.",
 			"any.required": "Password is required.",
+			"string.max":"Password shoould be maximum 30 characters."
 		}),
 });
 
