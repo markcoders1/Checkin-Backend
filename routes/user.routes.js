@@ -8,7 +8,6 @@ import {
 	getStatus,
 	getUser,
 	sendEmail,
-	resetPassword,
 	getAttendancePDF,
 	updateProfile,
 	isAdmin,
@@ -32,13 +31,11 @@ router.route("/getUser").get(verifyJWT, getUser);
 
 router.route("/getStatus").get(verifyJWT, getStatus);
 
-router.route("/test").post(test);
+router.route("/test").get(test);
 
 router.route("/send-email").post(verifyJWT, sendEmail);
 
 router.route("/isAdmin").get(verifyJWT, isAdmin);
-
-router.route("/reset-password").post(resetPassword);
 
 router.route("/update-profile").post(verifyJWT, updateProfile);
 

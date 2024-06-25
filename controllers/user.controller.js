@@ -31,7 +31,11 @@ import { uppercaseFirstLetter } from "../utils/utils.js";
 
 export const test = async (req, res) => {
 	try {
-		return res.status(200).json({ message: "Hello World" });
+		// const token = jwt.sign({email:req.body.email},process.env.PASSWORD_TOKEN_SECRET,{"expiresIn":'10h'})
+		// const token = jwt.verify(req.body.token,process.env.PASSWORD_TOKEN_SECRET,(err,decoded)=>{
+			console.log(req.ip)
+		
+		return res.status(200).json({ message: "hi" });
 	} catch (err) {
 		console.log(err);
 	}
@@ -564,13 +568,14 @@ export const getAttendancePDF = async (req, res) => {
 
 		const filename = `${
 			req.user.companyId
-		}.${filenameDate.getDate()}-${filenameDate.getMonth()}-${filenameDate.getFullYear()}`;
+		}-${filenameDate.getDate()}-${filenameDate.getMonth()}-${filenameDate.getFullYear()}`;
 
 		res.setHeader("Content-Type", "application/pdf");
 		res.setHeader(
 			"Content-Disposition",
 			`attachment; filename=${filename}.pdf`
 		);
+		res.setHeader('hi','ho')
 		res.status(200).send(pdfBuffer);
 	} catch (err) {
 		return res.status(400).json({

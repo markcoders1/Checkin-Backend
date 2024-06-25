@@ -94,14 +94,6 @@ const registerUserJoi = Joi.object({
 			"any.required": "Password is required.",
 		}),
 
-	confirmPassword: Joi.string()
-		.valid(Joi.ref("password"))
-		.required()
-		.messages({
-			"any.only": "Confirm password does not match password.",
-			"any.required": "confirmPassword is required.",
-		}),
-
 	email: Joi.string().email().required().messages({
 		"any.required": "Email is required.",
 		"string.empty": "Email cannot be empty.",
@@ -201,6 +193,38 @@ export const getUser = async (req, res) => {
 		}
 		console.log(user);
 		return res.status(200).json({ user: user });
+	} catch (error) {
+		console.log(error);
+		res.status(400).json({ error });
+	}
+};
+
+export const deleteUser = async (req, res) => {
+	try {
+		if (req.user.role !== "admin") {
+			res.status(401).json({ message: "Unauthorized" });
+		}
+		const userId = req.query.id;
+		if (typeof userId !== "string") {
+			console.log("ID must be string");
+			return res.status(401).json({ message: "ID must be string" });
+		}
+		const user = await User.findById(userId);
+		if (!user) {
+			console.log("user does not exist");
+			return res.status(401).json({ message: "user does not exist" });
+		}
+		console.log("User detected: ",user);
+
+		//deleting user
+		const deletedUser = await User.deleteOne({ _id: userId});
+		console.log("Deleted user: ", deletedUser);
+
+		//deleting user attendance
+		const deletedAttendance = await Attendance.deleteMany({userId: userId})
+		console.log("Deleted user Attendance: ", deletedAttendance )
+
+		return res.status(200).json({ message : "User deleted Successfully" });
 	} catch (error) {
 		console.log(error);
 		res.status(400).json({ error });
@@ -502,11 +526,6 @@ const updateAnyProfileJoi = Joi.object({
 		"string.max": "department should not exceed 30 characters.",
 	}),
 
-	role: Joi.string().valid("admin", "user").messages({
-		"any.only": "role must be either admin or user",
-		"string.base": "role must be a string",
-	}),
-
 	email: Joi.string().email().messages({
 		"string.empty": "Email cannot be empty.",
 		"string.email": "Invalid email format.",
@@ -522,8 +541,7 @@ const updateAnyProfileJoi = Joi.object({
 	"designation",
 	"teamLead",
 	"shift",
-	"department",
-	"role"
+	"department"
 );
 
 // Function to update specific User's details with the values provided by Admin
@@ -565,7 +583,7 @@ export const updateAnyProfile = async (req, res) => {
 		// find user by id
 		const user = await User.findById({
 			_id: updateFields.id,
-		}).select("-password -refreshToken -__v -active -status -image");
+		}).select("-password -refreshToken -__v -active -status -role -image");
 
 		//update user
 		updateObject(user, updateFields);

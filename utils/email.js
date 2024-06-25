@@ -1,4 +1,6 @@
 import nodemailer from "nodemailer";
+import hbs from 'nodemailer-express-handlebars';
+import path from 'path';
 
 export const transporterConstructor = () => {
   const transporter = nodemailer.createTransport({
@@ -10,6 +12,20 @@ export const transporterConstructor = () => {
     },
   });
   return transporter;
+};
+// Configure handlebars options
+export const handlebarConfig =() => {
+// Configure handlebars options
+const handlebarOptions = {
+  viewEngine: {
+    extName: '.hbs',
+    partialsDir: path.resolve('./views/'),
+    defaultLayout: false,
+  },
+  viewPath: path.resolve('./views/'),
+  extName: '.hbs',
+};
+return handlebarOptions
 };
 
 export const generateOTP = () => {
