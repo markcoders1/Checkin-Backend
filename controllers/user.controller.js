@@ -31,11 +31,7 @@ import { uppercaseFirstLetter } from "../utils/utils.js";
 
 export const test = async (req, res) => {
 	try {
-		// const token = jwt.sign({email:req.body.email},process.env.PASSWORD_TOKEN_SECRET,{"expiresIn":'10h'})
-		const token = jwt.verify(req.body.token,process.env.PASSWORD_TOKEN_SECRET,(err,decoded)=>{
-			console.log(decoded)
-		})
-		return res.status(200).json({ message: token });
+		return res.status(200).json({ message: "Hello World" });
 	} catch (err) {
 		console.log(err);
 	}
@@ -247,73 +243,73 @@ export const getUserAttendance = async (req, res) => {
 	}
 };
 
-// const resetPasswordJoi = Joi.object({
-// 	email: Joi.string().email().required().messages({
-// 		"any.required": "Email is required.",
-// 		"string.empty": "Email cannot be empty.",
-// 		"string.email": "Invalid email format.",
-// 	}),
-// });
+const resetPasswordJoi = Joi.object({
+	email: Joi.string().email().required().messages({
+		"any.required": "Email is required.",
+		"string.empty": "Email cannot be empty.",
+		"string.email": "Invalid email format.",
+	}),
+});
 
-// export const resetPassword = async (req, res) => {
-// 	// 1. take email from user (req.body)
-// 	// 2. first check if there is a user with that email in database
-// 	// 3. generate a new OTP,
-// 	// 4. set that otp as new password
-// 	// 5. send otp to user through email
-// 	try {
-// 		console.log(req.body);
+export const resetPassword = async (req, res) => {
+	// 1. take email from user (req.body)
+	// 2. first check if there is a user with that email in database
+	// 3. generate a new OTP,
+	// 4. set that otp as new password
+	// 5. send otp to user through email
+	try {
+		console.log(req.body);
 
-// 		///Joi email check
-// 		const { error } = resetPasswordJoi.validate(req.body);
-// 		if (error) {
-// 			console.log(error);
-// 			return res.status(400).json({ message: error.details });
-// 		}
+		///Joi email check
+		const { error } = resetPasswordJoi.validate(req.body);
+		if (error) {
+			console.log(error);
+			return res.status(400).json({ message: error.details });
+		}
 
-// 		const user = await User.findOne({ email: req.body.email });
-// 		if (!user) {
-// 			console.log("User not found");
-// 			return res.status(400).json({
-// 				message: `There is no user registered with the email: ${req.body.email} `,
-// 			});
-// 		}
-// 		console.log("User found:", user);
+		const user = await User.findOne({ email: req.body.email });
+		if (!user) {
+			console.log("User not found");
+			return res.status(400).json({
+				message: `There is no user registered with the email: ${req.body.email} `,
+			});
+		}
+		console.log("User found:", user);
 
-// 		const emailToSendOTP = user.email;
-// 		const otp = generateOTP();
-// 		console.log(`Trying to send OTP "${otp}" to ${emailToSendOTP} now`);
+		const emailToSendOTP = user.email;
+		const otp = generateOTP();
+		console.log(`Trying to send OTP "${otp}" to ${emailToSendOTP} now`);
 
-// 		// Email defined here
-// 		const theEmail = {
-// 			from: process.env.APP_EMAIL,
-// 			to: emailToSendOTP,
-// 			subject: "OTP",
-// 			text: `This is an automated Email for ${emailToSendOTP}. Your new password has been set to ${otp}`,
-// 		};
-// 		console.log(theEmail);
-// 		//send email
-// 		const transporter = transporterConstructor();
+		// Email defined here
+		const theEmail = {
+			from: process.env.APP_EMAIL,
+			to: emailToSendOTP,
+			subject: "OTP",
+			text: `This is an automated Email for ${emailToSendOTP}. Your new password has been set to ${otp}`,
+		};
+		console.log(theEmail);
+		//send email
+		const transporter = transporterConstructor();
 
-// 		await transporter.sendMail(theEmail, (error) => {
-// 			if (error) return res.status(400).json({ "Email not sent": error });
-// 		});
+		await transporter.sendMail(theEmail, (error) => {
+			if (error) return res.status(400).json({ "Email not sent": error });
+		});
 
-// 		console.log("Email with OTP has been sent successfully");
+		console.log("Email with OTP has been sent successfully");
 
-// 		//change password after email is sent with code
-// 		user.password = otp;
-// 		await user.save({ validateBeforeSave: false });
-// 		console.log("password has been reset. ");
-// 		res.status(200).json({
-// 			message:
-// 				"Email with OTP sent successfully and password has been reset",
-// 		});
-// 	} catch (error) {
-// 		console.error("Error occurred while sending OTP email: ", error);
-// 		res.status(400).json({ error });
-// 	}
-// };
+		//change password after email is sent with code
+		user.password = otp;
+		await user.save({ validateBeforeSave: false });
+		console.log("password has been reset. ");
+		res.status(200).json({
+			message:
+				"Email with OTP sent successfully and password has been reset",
+		});
+	} catch (error) {
+		console.error("Error occurred while sending OTP email: ", error);
+		res.status(400).json({ error });
+	}
+};
 
 const changePasswordJoi = Joi.object({
 	oldPassword: Joi.string()
@@ -568,13 +564,14 @@ export const getAttendancePDF = async (req, res) => {
 
 		const filename = `${
 			req.user.companyId
-		}.${filenameDate.getDate()}-${filenameDate.getMonth()}-${filenameDate.getFullYear()}`;
+		}-${filenameDate.getDate()}-${filenameDate.getMonth()}-${filenameDate.getFullYear()}`;
 
 		res.setHeader("Content-Type", "application/pdf");
 		res.setHeader(
 			"Content-Disposition",
 			`attachment; filename=${filename}.pdf`
 		);
+		res.setHeader('hi','ho')
 		res.status(200).send(pdfBuffer);
 	} catch (err) {
 		return res.status(400).json({
