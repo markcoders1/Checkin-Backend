@@ -178,7 +178,7 @@ export const resetPassword = async (req, res) => {
 		console.log("User found:", user);
 		console.log(process.env.PASSWORD_TOKEN_SECRET);
 		// generate a token using jwt
-		const resetToken = jwt.sign({email:req.body.email},process.env.PASSWORD_TOKEN_SECRET,{"expiresIn":'55m'})
+		const resetToken = jwt.sign({email:req.body.email},process.env.PASSWORD_TOKEN_SECRET,{"expiresIn":'5m'})
 		console.log("RESET TOKEN: ", resetToken);
 		const link = `hresque.vercel.app/password-reset?token=${resetToken}`;
 		console.log("LINK: ",link);
