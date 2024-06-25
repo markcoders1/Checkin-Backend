@@ -32,10 +32,10 @@ import { uppercaseFirstLetter } from "../utils/utils.js";
 export const test = async (req, res) => {
 	try {
 		// const token = jwt.sign({email:req.body.email},process.env.PASSWORD_TOKEN_SECRET,{"expiresIn":'10h'})
-		const token = jwt.verify(req.body.token,process.env.PASSWORD_TOKEN_SECRET,(err,decoded)=>{
-			console.log(decoded)
-		})
-		return res.status(200).json({ message: token });
+		// const token = jwt.verify(req.body.token,process.env.PASSWORD_TOKEN_SECRET,(err,decoded)=>{
+			console.log(req.ip)
+		
+		return res.status(200).json({ message: "hi" });
 	} catch (err) {
 		console.log(err);
 	}

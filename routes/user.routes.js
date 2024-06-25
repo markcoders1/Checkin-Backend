@@ -31,7 +31,7 @@ router.route("/getUser").get(verifyJWT, getUser);
 
 router.route("/getStatus").get(verifyJWT, getStatus);
 
-router.route("/test").post(test);
+router.route("/test").get(test);
 
 router.route("/send-email").post(verifyJWT, sendEmail);
 

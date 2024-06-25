@@ -1,5 +1,5 @@
 import { User } from "../models/user.model.js";
-import jwt from "jsonwebtoken";
+import jwt, { decode } from "jsonwebtoken";
 import Joi from "joi";
 import { transporterConstructor ,handlebarConfig } from "../utils/email.js";
 import hbs from 'nodemailer-express-handlebars';
@@ -141,10 +141,6 @@ export const logoutUser = (req, res) => {
 	}
 };
 
-
-
-
-
 const resetPasswordJoi = Joi.object({
 	email: Joi.string().email().required().messages({
 		"any.required": "Email is required.",
@@ -181,7 +177,7 @@ export const resetPassword = async (req, res) => {
 		console.log(process.env.PASSWORD_TOKEN_SECRET);
 		// generate a token using jwt
 		const resetToken = jwt.sign({email:req.body.email},process.env.PASSWORD_TOKEN_SECRET,{"expiresIn":'5m'})
-		
+		console.log("RESET TOKEN: ", resetToken);
 		const link = `hresque.vercel.app/password-reset?token=${resetToken}`;
 		console.log("LINK: ",link);
 
@@ -221,6 +217,37 @@ export const resetPassword = async (req, res) => {
 		});
 	} catch (error) {
 		console.error("Error occurred while sending link email: ", error);
+		res.status(400).json({ error });
+	}
+};
+//! INCOMPLETE
+export const resetPassword2 = async (req,res) =>{
+	try {
+		// decode the token 
+		// verify the token with token_secret 
+		// get newPassword from user
+		// take the email from the decoded token and get that user in db
+		// now set this user's password to newPassword 
+
+		// const token = jwt.sign({email:req.body.email},process.env.PASSWORD_TOKEN_SECRET,{"expiresIn":'10h'})
+		const token = jwt.verify(req.body.token,process.env.PASSWORD_TOKEN_SECRET,(err,decoded)=>{
+			console.log("Decoded Token: ",decoded)
+		})
+		console.log("EMAIL: ", decoded.email);
+		if (!decoded.email){
+			console.log(`User with email ${decoded.email} not found`);
+			return res.status(400).json({
+				message: `There is no user registered with the email: ${decoded.email} `,
+			});
+		}
+
+
+
+
+
+		return res.status(200).json({ message: "Password has been changed Succesfully" , token});
+
+	} catch (error) {
 		res.status(400).json({ error });
 	}
 };
