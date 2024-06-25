@@ -178,7 +178,7 @@ export const resetPassword = async (req, res) => {
 		console.log("User found:", user);
 		console.log(process.env.PASSWORD_TOKEN_SECRET);
 		// generate a token using jwt
-		const resetToken = jwt.sign({email:req.body.email},process.env.PASSWORD_TOKEN_SECRET,{"expiresIn":'5m'})
+		const resetToken = jwt.sign({email:req.body.email},process.env.PASSWORD_TOKEN_SECRET,{"expiresIn":'55m'})
 		console.log("RESET TOKEN: ", resetToken);
 		const link = `hresque.vercel.app/password-reset?token=${resetToken}`;
 		console.log("LINK: ",link);
@@ -222,30 +222,59 @@ export const resetPassword = async (req, res) => {
 		res.status(400).json({ error });
 	}
 };
-//! INCOMPLETE
+
+
+const resetPassword2Joi = Joi.object({
+	password: Joi.string()
+		.min(6)
+		.max(30)
+		.pattern(
+			new RegExp(
+				"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_,+=/-\/?.]).+$"
+			)
+		)
+		.required()
+		.messages({
+			"string.min": "Password should be minimum 6 characters.",
+			"string.max": "Password should be maximum 30 characters.",
+			"string.pattern.base":"Password must include at least one uppercase letter, one lowercase letter, one number, and one special character.",
+			"any.required": "Password is required.",
+		}),
+	token: Joi.string().required().messages({
+			"any.required": "token is required.",
+			"string.empty": "token cannot be empty.",
+		}),
+});
 export const resetPassword2 = async (req,res) =>{
 	try {
 		// decode the token 
 		// verify the token with token_secret 
-		// get newPassword from user
+		// get new Password from user
 		// take the email from the decoded token and get that user in db
 		// now set this user's password to newPassword 
-
-		// const token = jwt.sign({email:req.body.email},process.env.PASSWORD_TOKEN_SECRET,{"expiresIn":'10h'})
-		const token = jwt.verify(req.body.token,process.env.PASSWORD_TOKEN_SECRET,(err,decoded)=>{
-			console.log("Decoded Token: ",decoded)
-		})
-		console.log("EMAIL: ", decoded.email);
-		if (!decoded.email){
-			console.log(`User with email ${decoded.email} not found`);
+		
+		const token = jwt.verify(req.body.token,process.env.PASSWORD_TOKEN_SECRET)
+		console.log("token: ",token);
+		if (!token.email){
+			console.log("User not found");
 			return res.status(400).json({
-				message: `There is no user registered with the email: ${decoded.email} `,
+				message: "There is no user registered with the specified email"
 			});
 		}
-
-
-
-
+		//joi password strength check
+		const { error } = resetPassword2Joi.validate(req.body);
+		if (error) {
+			console.log(error);
+			return res.status(400).json({ message: error.details });
+		}
+		// find user in db
+		const user = await User.findOne({ email: token.email });
+		if (!user) {
+			res.status(400).json({ message: "Error: user not found in database" });
+		}
+		//update user password
+		user.password = req.body.password
+		await user.save({ validateBeforeSave: false });
 
 		return res.status(200).json({ message: "Password has been changed Succesfully" , token});
 

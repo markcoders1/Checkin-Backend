@@ -1,7 +1,7 @@
 import { Router } from "express";
 import {
 	checkInOrCheckOut,
-	changeCurrentPassword,
+	// changeCurrentPassword,
 	test,
 	getUserAttendance,
 	breakUser,
@@ -21,7 +21,7 @@ router.route("/check").post(verifyJWT, checkInOrCheckOut);
 
 router.route("/break").post(verifyJWT, breakUser);
 
-router.route("/change-password").post(verifyJWT, changeCurrentPassword);
+// router.route("/change-password").post(verifyJWT, changeCurrentPassword);
 
 router.route("/getUserAttendance").get(verifyJWT, getUserAttendance);
 
