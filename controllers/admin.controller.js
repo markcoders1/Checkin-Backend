@@ -94,14 +94,6 @@ const registerUserJoi = Joi.object({
 			"any.required": "Password is required.",
 		}),
 
-	confirmPassword: Joi.string()
-		.valid(Joi.ref("password"))
-		.required()
-		.messages({
-			"any.only": "Confirm password does not match password.",
-			"any.required": "confirmPassword is required.",
-		}),
-
 	email: Joi.string().email().required().messages({
 		"any.required": "Email is required.",
 		"string.empty": "Email cannot be empty.",

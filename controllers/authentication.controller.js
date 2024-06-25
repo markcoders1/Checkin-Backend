@@ -10,17 +10,12 @@ const loginUserJoi = Joi.object({
 		"string.empty": "Email cannot be empty.",
 		"string.email": "Invalid email format.",
 	}),
-		//updated
-		password: Joi.string()
-		.pattern(
-			new RegExp(
-				"^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{6,30}$"
-			)
-		)
+
+	password: Joi.string()
 		.required()
+		.min(6)
 		.messages({
-			"string.pattern.base":
-				"Password must be between 6 and 30 characters long, and include at least one uppercase letter, one lowercase letter, one number, and one special character.",
+			"string.min": "Password should be minimum 6 characters.",
 			"any.required": "Password is required.",
 		}),
 });
