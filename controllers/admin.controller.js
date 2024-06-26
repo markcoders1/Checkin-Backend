@@ -82,15 +82,18 @@ const registerUserJoi = Joi.object({
 	}),
 
 	password: Joi.string()
+		.min(6)
+		.max(30)
 		.pattern(
 			new RegExp(
-				"^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{6,30}$"
+				"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_,+=/-\/?.]).+$"
 			)
 		)
 		.required()
 		.messages({
-			"string.pattern.base":
-				"Password must be between 6 and 30 characters long, and include at least one uppercase letter, one lowercase letter, one number, and one special character.",
+			"string.min": "Password should be minimum 6 characters.",
+			"string.max": "Password should be maximum 30 characters.",
+			"string.pattern.base":"Password must include at least one uppercase letter, one lowercase letter, one number, and one special character.",
 			"any.required": "Password is required.",
 		}),
 
