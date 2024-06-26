@@ -162,26 +162,26 @@ export const resetPassword = async (req, res) => {
 	// 5. send email with link made with that token
 	
 	try {
-		console.log(req.body);
+		console.log(req.query);
 
 		//Joi email check
-		const { error } = resetPasswordJoi.validate(req.body);
+		const { error } = resetPasswordJoi.validate(req.query);
 		if (error) {
 			console.log(error);
 			return res.status(400).json({ message: error.details });
 		}
 		//find in db
-		const user = await User.findOne({ email: req.body.email });
+		const user = await User.findOne({ email: req.query.email });
 		if (!user) {
 			console.log("User not found");
 			return res.status(400).json({
-				message: `There is no user registered with the email: ${req.body.email} `,
+				message: `There is no user registered with the email: ${req.query.email} `,
 			});
 		}
 		console.log("User found:", user);
 		console.log(process.env.PASSWORD_TOKEN_SECRET);
 		// generate a token using jwt
-		const resetToken = jwt.sign({email:req.body.email},process.env.PASSWORD_TOKEN_SECRET,{"expiresIn":'5m'})
+		const resetToken = jwt.sign({email:req.query.email},process.env.PASSWORD_TOKEN_SECRET,{"expiresIn":'5m'})
 		console.log("RESET TOKEN: ", resetToken);
 		const link = `hresque.vercel.app/password-reset?token=${resetToken}`;
 		console.log("LINK: ",link);
@@ -198,7 +198,8 @@ export const resetPassword = async (req, res) => {
 		context: {
 		  firstName: user.firstName,
 		  lastName: user.lastName,
-		  link: `https://hresque.vercel.app/password-reset?token=${resetToken}`,
+		  link: `http://localhost:5173/password-reset/${resetToken}`,
+		  //   link: `https://hresque.vercel.app/password-reset/${resetToken}`,
 		},
 	};
 		console.log(theEmail);
