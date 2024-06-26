@@ -6,6 +6,9 @@ import {
     adminLogin,
     resetPassword,
     resetPassword2,
+    logoutFromAllDevicesExceptCurrent,
+    logoutFromSpecificDevice,
+    logoutFromAllDevices,
 } from '../controllers/authentication.controller.js'
 import jwt from 'jsonwebtoken'
 
@@ -35,5 +38,11 @@ router.route("/logout").post(logoutUser)
 router.route("/reset-password").get(resetPassword);
 
 router.route("/reset-password").post(resetPassword2); 
+
+router.route("/logout-all-except").post(logoutFromAllDevicesExceptCurrent);
+  
+router.route("/logout-specific").post(logoutFromSpecificDevice);
+
+router.route("/logout-all").post(logoutFromAllDevices);
 
 export default router
