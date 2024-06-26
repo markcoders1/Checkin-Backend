@@ -42,7 +42,7 @@ const generateAccessAndRefreshToken = async (userId,deviceId) => {
 			
 		} else {
 			user.devices.push({
-			deviceId:deviceId,
+			deviceId,
 			refreshToken
 			});
 		}
@@ -62,7 +62,6 @@ export const loginUser = async (req, res) => {
 	try {
 		const { email, password, device } = req.body;
 		const { error } = loginUserJoi.validate(req.body);
-		console.log("DEVICE: ", device);
 		if (error) {
 			console.log(error);
 			return res.status(400).json({ message: error.details });
@@ -78,8 +77,17 @@ export const loginUser = async (req, res) => {
 				.json({ message: "your account has been deactivated" });
 		}
 
+		
 		const isPasswordValid = await user.isPasswordCorrect(password);
+		
 		if (!isPasswordValid) {
+			user.wrongLogins=user.wrongLogins+1
+			if(user.wrongLogins>=3){
+				user.active=false
+				user.save()
+				return res.status(400).json({ message: "Account deactivated due to multiple incorrect attempts. Please Contact management." })
+			}
+			user.save()
 			return res
 				.status(400)
 				.json({ message: "email or password incorrect" });
@@ -94,6 +102,7 @@ export const loginUser = async (req, res) => {
 			refreshToken,
 		});
 	} catch (err) {
+		console.log(err)
 		return res.status(400).json({ message: "error", err });
 	}
 };
@@ -171,19 +180,25 @@ export const logoutUser = (req, res) => {
 
 export const logoutFromAllDevicesExceptCurrent = async (req, res) => {
 	try {
-		const { userId, deviceId } = req.body;
+		const { refreshToken, deviceId } = req.body;
 
-		if (!userId || !deviceId) {
+		if ( !deviceId) {
 			return res.status(400).json({message:"userId or deviceId Missing "})
 		}
 
-		const user = await User.findById(userId);
-
-		user.devices = user.devices.filter(
-			(device) => device.deviceId === deviceId
+		jwt.verify(
+			refreshToken,
+			process.env.REFRESH_TOKEN_SECRET,
+			async (err, decoded) => {
+				const user = await User.findOne({ email: decoded.email });
+				user.devices = user.devices.filter(
+					(device) => device.deviceId === deviceId
+				);
+		
+				await user.save();
+				user.save();
+			}
 		);
-
-		await user.save();
 
 		return res
 			.status(200)

@@ -10,6 +10,7 @@ import {
     logoutFromSpecificDevice,
     logoutFromAllDevices,
 } from '../controllers/authentication.controller.js'
+import { verifyJWT } from "../middleware/auth.middleware.js";
 import jwt from 'jsonwebtoken'
 
 const authenticateToken = (req, res, next) => {
@@ -33,16 +34,16 @@ router.route("/adminLogin").post(adminLogin)
 
 router.route("/token").post(refreshAccessToken);
 
-router.route("/logout").post(logoutUser)
+router.route("/logout").post(verifyJWT,logoutUser)
 
 router.route("/reset-password").get(resetPassword);
 
 router.route("/reset-password").post(resetPassword2); 
 
-router.route("/logout-all-except").post(logoutFromAllDevicesExceptCurrent);
+router.route("/logout-all-except").post(verifyJWT,logoutFromAllDevicesExceptCurrent);
   
-router.route("/logout-specific").post(logoutFromSpecificDevice);
+router.route("/logout-specific").post(verifyJWT,logoutFromSpecificDevice);
 
-router.route("/logout-all").post(logoutFromAllDevices);
+router.route("/logout-all").post(verifyJWT,logoutFromAllDevices);
 
 export default router

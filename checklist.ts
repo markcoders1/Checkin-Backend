@@ -8,22 +8,15 @@
         //* google geolib npm module
         //* latitude and longetude of Markcoders (24.899659, 67.109078)
         //* will need to sign a jwt with a secret code, which then the backend will decode and then validate the check in check out
-    //ToDo add Image on registration page
+    //ToDo logout specific devices
     
 //head backend
-    //ToDo failed log in attempts
-        //* will need its own database collection
-        //* frontend sends email and password
-        //* if password incorrect, x number of times, user cannot login anymore for a set amount of time
-
     //ToDo account activity monitoring
         //* add account logs for each user on a seperate database model
-    //ToDo additional information
-        //* image
-            //* will need S3 server
-        //Done active/inactive
-    //ToDo google account
-        //! not possible due to the nature of the registration feature
+    //ToDo get all devices user
+    //ToDo get login/logout logs
+    
+
 //head hybrid
 
 //? total time spent in office for a specific time period
@@ -92,3 +85,7 @@
 //Done log out from all devices
     //* will need frontend device parser
     //* google ua-parser-js
+//Done failed log in attempts
+    //* will need its own database collection
+    //* frontend sends email and password
+    //* if password incorrect, x number of times, user cannot login anymore for a set amount of time

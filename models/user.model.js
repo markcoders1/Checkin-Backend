@@ -6,11 +6,11 @@ import jwt from "jsonwebtoken";
 const deviceSchema = new mongoose.Schema({
 	deviceId: {
 		type: String,
-		required: true
+		// required: true
 	},
 	refreshToken: {
 		type: String,
-		required: true
+		// required: true
 	},
 	// userAgent: {
 	// 	type: String,
@@ -89,6 +89,10 @@ const userSchema = new mongoose.Schema(
 		active: {
 			type: Boolean,
 			default: true,
+		},
+		wrongLogins:{
+			type:Number,
+			default:0
 		},
 		image: {
 			type: String,
