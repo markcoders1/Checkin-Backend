@@ -2,6 +2,22 @@ import mongoose, { Schema } from "mongoose";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
+
+const deviceSchema = new mongoose.Schema({
+	deviceId: {
+		type: String,
+		required: true
+	},
+	refreshToken: {
+		type: String,
+		required: true
+	},
+	// userAgent: {
+	// 	type: String,
+	// 	required: true
+	// },
+});
+
 const userSchema = new mongoose.Schema(
 	{
 		firstName: {
@@ -63,9 +79,7 @@ const userSchema = new mongoose.Schema(
 			type: String,
 			required: [true, "Password is required"],
 		},
-		refreshToken: {
-			type: String,
-		},
+		devices:[deviceSchema],
 		status: {
 			type: String, // checkin || checkout || inbreak
 			lowercase: true,

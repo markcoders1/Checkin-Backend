@@ -20,13 +20,13 @@ const loginUserJoi = Joi.object({
 		}),
 });
 
-const generateAccessAndRefreshToken = async (userId) => {
+const generateAccessAndRefreshToken = async (userId,device) => {
 	try {
 		const user = await User.findById(userId);
 		const accessToken = user.generateAccessToken();
 		const refreshToken = user.generateRefreshToken();
 
-		user.refreshToken = refreshToken;
+		user.devices.push({refreshToken,deviceId:device});
 		await user.save({ validateBeforeSave: false });
 
 		return { accessToken, refreshToken };
@@ -39,7 +39,7 @@ const generateAccessAndRefreshToken = async (userId) => {
 
 export const loginUser = async (req, res) => {
 	try {
-		const { email, password } = req.body;
+		const { email, password, device } = req.body;
 		const { error } = loginUserJoi.validate(req.body);
 		if (error) {
 			console.log(error);
@@ -64,7 +64,7 @@ export const loginUser = async (req, res) => {
 		}
 
 		const { accessToken, refreshToken } =
-			await generateAccessAndRefreshToken(user._id);
+			await generateAccessAndRefreshToken(user._id,device);
 
 		return res.status(200).json({
 			message: "logged in successfully",
@@ -88,9 +88,9 @@ export const adminLogin = (req, res) => {
 
 export const refreshAccessToken = (req, res) => {
 	try {
-		const { refreshToken } = req.body;
+		const { refreshToken,device } = req.body;
 
-		if (refreshToken == null) return res.sendStatus(403);
+		if (refreshToken == null||device == null) return res.sendStatus(403);
 
 		jwt.verify(
 			refreshToken,
@@ -98,7 +98,10 @@ export const refreshAccessToken = (req, res) => {
 			async (err, decoded) => {
 				if (err) return res.sendStatus(403);
 				const user = await User.findOne({ email: decoded.email });
-				if (user.refreshToken !== refreshToken)
+
+				const session=user.devices.find(device=>device.deviceId==device)
+
+				if (session.refreshToken !== refreshToken||session==undefined)
 					return res.sendStatus(403);
 
 				const accessToken = jwt.sign(

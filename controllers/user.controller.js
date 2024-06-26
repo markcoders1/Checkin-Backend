@@ -9,26 +9,6 @@ import { unixTo24Time, unixToDate, unixToTime } from "../utils/utils.js";
 import * as fs from "fs";
 import { uppercaseFirstLetter } from "../utils/utils.js";
 
-// export const test=async (req,res)=>{
-//   try{
-
-//     let users = await User.find();
-
-//     users = await users.map(async (user)=>{
-//       user.companyId="testUser"
-//       user.active=true
-//       await user.save()
-//     })
-
-//     console.log('User found:', users);
-//     const testItem=users
-//     console.log(testItem)
-//     res.status(200).json({testItem})
-//   }catch(err){
-//     console.log(err)
-//   }
-// }
-
 export const test = async (req, res) => {
 	try {
 		return res.status(200).json({ message: "Hello World" });
@@ -75,17 +55,12 @@ export const checkInOrCheckOut = async (req, res) => {
 				status: user.status,
 			});
 		} else if (status === "checkin") {
-			//calculate totalDuration and netduration and checkout
+			
 			const array = await Attendance.find({
 				userId: req.user.id,
-				date: { $gte: new Date(new Date() - 1 * 60 * 60 * 24 * 1000) },
+				date: { $gte: new Date(new Date() - 5 * 60 * 60 * 24 * 1000) },
 			});
 			const objToChange = array[array.length - 1];
-			// const duration=(new Date().valueOf())-objToChange.checkIn
-			// if(duration<1000*60*60*2){
-			//   res.status(403).json({message:"Please consult Management about leaving early"})
-			//   return;
-			// }
 
 			objToChange.checkOut = new Date().valueOf();
 			objToChange.totalDuration =
@@ -109,8 +84,6 @@ export const checkInOrCheckOut = async (req, res) => {
 			});
 
 			let objToChange = array[array.length - 1];
-			//put new time value in breakIn which is inside this object
-			//if array is empty, simply push else append at the end
 			objToChange.breakOut.push(new Date().valueOf());
 			const breakOutTime =
 				objToChange.breakOut[objToChange.breakOut.length - 1];
@@ -124,11 +97,6 @@ export const checkInOrCheckOut = async (req, res) => {
 			//checking out
 			objToChange.checkOut = new Date().valueOf();
 			const duration = objToChange.checkOut - objToChange.checkIn;
-
-			// if(duration<1000*60*60*2){
-			//   res.status(403).json({message:"Please consult Management about leaving early"})
-			//   return;
-			// }
 
 			objToChange.totalDuration = duration;
 			objToChange.netDuration =

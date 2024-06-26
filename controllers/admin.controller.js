@@ -202,17 +202,18 @@ export const getUser = async (req, res) => {
 export const deleteUser = async (req, res) => {
 	try {
 		if (req.user.role !== "admin") {
-			res.status(401).json({ message: "Unauthorized" });
+			res.status(400).json({ message: "Unauthorized" });
 		}
 		const userId = req.query.id;
 		if (typeof userId !== "string") {
+			console.log(userId)
 			console.log("ID must be string");
-			return res.status(401).json({ message: "ID must be string" });
+			return res.status(400).json({ message: "ID must be string" });
 		}
 		const user = await User.findById(userId);
 		if (!user) {
 			console.log("user does not exist");
-			return res.status(401).json({ message: "user does not exist" });
+			return res.status(400).json({ message: "user does not exist" });
 		}
 		console.log("User detected: ",user);
 
@@ -559,9 +560,6 @@ const updateObject = (target, updates) => {
 
 export const updateAnyProfile = async (req, res) => {
 	try {
-		if (req.user.role !== "admin") {
-			res.status(401).json({ message: "Unauthorized" });
-		}
 		//joi validate
 		const { error, value } = updateAnyProfileJoi.validate(req.body);
 		if (error) {
