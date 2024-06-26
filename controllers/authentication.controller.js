@@ -20,19 +20,38 @@ const loginUserJoi = Joi.object({
 			"any.required": "Password is required.",
 			"string.max":"Password shoould be maximum 30 characters."
 		}),
+
+	device: Joi.string().required()
 });
 
-const generateAccessAndRefreshToken = async (userId,device) => {
+const generateAccessAndRefreshToken = async (userId,deviceId) => {
 	try {
 		const user = await User.findById(userId);
+		
 		const accessToken = user.generateAccessToken();
 		const refreshToken = user.generateRefreshToken();
+		// Check if device already exists
+		// console.log(user.devices);
 
-		user.devices.push({refreshToken,deviceId:device});
+		let devices1 = Array(user.devices)[0]
+		console.log("THIS IS DEVICE ONE: ",devices1);
+		const existingDevice = devices1.find(device => device.deviceId === deviceId);
+		console.log(existingDevice);
+		if (existingDevice) {
+			existingDevice.refreshToken = refreshToken;
+			
+		} else {
+			user.devices.push({
+			deviceId:deviceId,
+			refreshToken
+			});
+		}
+
 		await user.save({ validateBeforeSave: false });
 
 		return { accessToken, refreshToken };
 	} catch (error) {
+		console.log(error);
 		throw new Error(
 			"Something went wrong while generating Access and Refresh Tokens"
 		);
@@ -43,6 +62,7 @@ export const loginUser = async (req, res) => {
 	try {
 		const { email, password, device } = req.body;
 		const { error } = loginUserJoi.validate(req.body);
+		console.log("DEVICE: ", device);
 		if (error) {
 			console.log(error);
 			return res.status(400).json({ message: error.details });
@@ -124,7 +144,7 @@ export const refreshAccessToken = (req, res) => {
 
 export const logoutUser = (req, res) => {
 	try {
-		const { refreshToken } = req.body;
+		const { refreshToken, deviceId } = req.body;
 		if (!refreshToken) {
 			return res.status(400).json({ message: "Token not found" });
 		}
@@ -134,7 +154,9 @@ export const logoutUser = (req, res) => {
 			process.env.REFRESH_TOKEN_SECRET,
 			async (err, decoded) => {
 				const user = await User.findOne({ email: decoded.email });
-				user.refreshToken = "";
+				let devices = Array(user.devices)[0]
+				user.devices = devices.filter(device => device.deviceId !== deviceId)
+				
 				user.save();
 			}
 		);
@@ -142,6 +164,80 @@ export const logoutUser = (req, res) => {
 		res.status(200).json({message:"User logged out successfully"});
 	} catch (err) {
 		console.log(err);
+		return res.status(400).json({ message: "error", err });
+	}
+};
+
+
+export const logoutFromAllDevicesExceptCurrent = async (req, res) => {
+	try {
+		const { userId, deviceId } = req.body;
+
+		if (!userId || !deviceId) {
+			return res.status(400).json({message:"userId or deviceId Missing "})
+		}
+
+		const user = await User.findById(userId);
+
+		user.devices = user.devices.filter(
+			(device) => device.deviceId === deviceId
+		);
+
+		await user.save();
+
+		return res
+			.status(200)
+			.json({ message: "Logged Out from all devices successfully" });
+	} catch (error) {
+		console.log(error);
+		return res.status(400).json({ message: "error", error });
+	}
+};
+
+export const logoutFromAllDevices = async (req, res) => {
+	try {
+		const { userId }  = req.body;
+
+		if (!userId) {
+			return res.status(400).json({message:"userId Missing "})
+		}
+
+		const user = await User.findById(userId);
+
+		user.devices = []
+
+		await user.save();
+
+		return res
+			.status(200)
+			.json({ message: "Logged Out from all devices except current successfully" });
+	} catch (error) {
+		console.log(error);
+		return res.status(400).json({ message: "error", error });
+	}
+};
+
+export const logoutFromSpecificDevice = async (req, res) => {
+	try {
+		const { userId, deviceId } = req.body;
+
+		if (!userId || !deviceId) {
+			return res.status(400).json({message:"userId or deviceId Missing "})
+		}
+
+		const user = await User.findById(userId);
+
+		user.devices = user.devices.filter(
+			(device) => device.deviceId !== deviceId
+		);
+
+		await user.save();
+
+		return res
+			.status(200)
+			.json({ message: "Logged Out from specific device successfully" });
+	} catch (error) {
+		console.log(error);
 		return res.status(400).json({ message: "error", err });
 	}
 };
@@ -183,7 +279,7 @@ export const resetPassword = async (req, res) => {
 		// generate a token using jwt
 		const resetToken = jwt.sign({email:req.body.email},process.env.PASSWORD_TOKEN_SECRET,{"expiresIn":'5m'})
 		console.log("RESET TOKEN: ", resetToken);
-		const link = `hresque.vercel.app/password-reset?token=${resetToken}`;
+		const link = `hresque.vercel.app/password-reset/${resetToken}`;
 		console.log("LINK: ",link);
 
 		const emailToSendOTP = user.email;

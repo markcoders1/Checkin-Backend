@@ -263,7 +263,7 @@ export const resetPassword = async (req, res) => {
 		//send email
 		const transporter = transporterConstructor();
 
-		await transporter.sendMail(theEmail, (error) => {
+		transporter.sendMail(theEmail, (error) => {
 			if (error) return res.status(400).json({ "Email not sent": error });
 		});
 
