@@ -10,9 +10,6 @@
         //* will need to sign a jwt with a secret code, which then the backend will decode and then validate the check in check out
     
 //head backend
-    //ToDo account activity monitoring
-        //* add account logs for each user on a seperate database model
-    //ToDo get login/logout logs
 
 //head hybrid
 
@@ -91,3 +88,8 @@
     //* if password incorrect, x number of times, user cannot login anymore for a set amount of time
 //Done add API to see a specific user's all logged in devices
     // This is already done. GetUser API shows complete user details. we can see user's all logged in devices through that
+//Done account activity monitoring
+        //* add account logs for each user on a seperate database model
+//Done get login/logout logs
+    // Log:  time and action(login/logout) and device info 
+

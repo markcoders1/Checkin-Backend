@@ -3,6 +3,7 @@ import jwt, { decode } from "jsonwebtoken";
 import Joi from "joi";
 import { transporterConstructor ,handlebarConfig } from "../utils/email.js";
 import hbs from 'nodemailer-express-handlebars';
+import { Log } from "../models/logs.model.js";
 
 const loginUserJoi = Joi.object({
 	email: Joi.string().email().required().messages({
@@ -95,6 +96,12 @@ export const loginUser = async (req, res) => {
 
 		const { accessToken, refreshToken } =
 			await generateAccessAndRefreshToken(user._id,device);
+		//Log
+		await Log.create({
+			userId : user.id,
+			deviceId: device,
+			logType: "Login"
+		})
 
 		return res.status(200).json({
 			message: "logged in successfully",
@@ -151,24 +158,29 @@ export const refreshAccessToken = (req, res) => {
 	}
 };
 
-export const logoutUser = (req, res) => {
+export const logoutUser = async(req, res) => {
 	try {
 		const { refreshToken, deviceId } = req.body;
 		if (!refreshToken) {
 			return res.status(400).json({ message: "Token not found" });
 		}
 
-		jwt.verify(
+		const decoded = jwt.verify(
 			refreshToken,
-			process.env.REFRESH_TOKEN_SECRET,
-			async (err, decoded) => {
-				const user = await User.findOne({ email: decoded.email });
-				let devices = Array(user.devices)[0]
-				user.devices = devices.filter(device => device.deviceId !== deviceId)
-				
-				user.save();
-			}
-		);
+			process.env.REFRESH_TOKEN_SECRET)
+			
+		const user = await User.findOne({ email: decoded.email });
+		let devices = Array(user.devices)[0]
+		user.devices = devices.filter(device => device.deviceId !== deviceId)
+		
+		user.save();
+	
+		//Log
+		await Log.create({
+			userId : user.id,
+			deviceId: deviceId,
+			logType: "Logout"
+		})
 
 		res.status(200).json({message:"User logged out successfully"});
 	} catch (err) {
