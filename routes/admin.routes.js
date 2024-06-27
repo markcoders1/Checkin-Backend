@@ -1,6 +1,17 @@
 import { Router } from "express";
-import {registerUser,getUserAttendance, getUser, getAllUsers, getAttendancePDF, toggleUserAccount, autoCheck, updateAnyProfile, deleteUser} from "../controllers/admin.controller.js";
-import { verifyJWT,verifyAdmin } from "../middleware/auth.middleware.js";
+import {
+	registerUser,
+	getUserAttendance,
+	getUser,
+	getAllUsers,
+	getAttendancePDF,
+	toggleUserAccount,
+	autoCheck,
+	updateAnyProfile,
+	deleteUser,
+    // getUserDevices,
+} from "../controllers/admin.controller.js";
+import { verifyJWT, verifyAdmin } from "../middleware/auth.middleware.js";
 
 const router = Router();
 
@@ -21,5 +32,7 @@ router.route("/auto-check").get(autoCheck)
 router.route("/delete-user").get(verifyJWT, verifyAdmin, deleteUser)
 
 router.route("/update-any-profile").post(verifyJWT,verifyAdmin,updateAnyProfile)
+
+// router.route("/get-user-devices").get(verifyJWT, verifyAdmin, getUserDevices)
 
 export default router

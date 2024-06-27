@@ -202,6 +202,34 @@ export const getUser = async (req, res) => {
 	}
 };
 
+// // REDUNDANT BECAUSE GETUSER DOES RETURN DEVICES AS WELL
+// export const getUserDevices = async (req, res) => {
+// 	try {
+// 		if (req.user.role !== "admin") {
+// 			res.status(401).json({ message: "Unauthorized" });
+// 		}
+// 		const userId = req.query.id;
+// 		if (typeof userId !== "string") {
+// 			console.log("ID must be string");
+// 			return res.status(401).json({ message: "ID must be string" });
+// 		}
+// 		const user = await User.findById(userId);
+// 		if (!user) {
+// 			console.log("user does not exist");
+// 			return res.status(401).json({ message: "user does not exist" });
+// 		}
+// 		console.log(user);
+// 		return res.status(200).json(user.devices);
+// 	} catch (error) {
+// 		return res.status(400).json({
+// 			message:
+// 				"something went wrong while getting specific user's logged in devices",
+// 				error,
+// 			});
+// 		}
+// 	};
+	
+
 export const deleteUser = async (req, res) => {
 	try {
 		if (req.user.role !== "admin") {
