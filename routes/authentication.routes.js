@@ -4,7 +4,7 @@ import {
     loginUser,
     logoutUser,
     adminLogin,
-    resetPassword,
+    resetPassword1,
     resetPassword2,
     logoutFromAllDevicesExceptCurrent,
     logoutFromSpecificDevice,
@@ -34,9 +34,9 @@ router.route("/adminLogin").post(adminLogin)
 
 router.route("/token").post(refreshAccessToken);
 
-router.route("/logout").post(verifyJWT,logoutUser)
+router.route("/logout").post(verifyJWT,logoutUser) // this now logouts from only current device
 
-router.route("/reset-password").get(resetPassword);
+router.route("/reset-password").get(resetPassword1);
 
 router.route("/reset-password").post(resetPassword2); 
 

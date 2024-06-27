@@ -15,7 +15,9 @@
         //* add account logs for each user on a seperate database model
     //ToDo get all devices user
     //ToDo get login/logout logs
-    
+    //ToDo add API to see a specific user's all logged in devices
+    //ToDo when refresh token is expired or not ,of a current device it still gets forwarded, 
+        // make it so that if its valid only then forward it, if it is expired then generate a new one and then forward it  
 
 //head hybrid
 

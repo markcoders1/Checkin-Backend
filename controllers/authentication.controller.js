@@ -265,7 +265,7 @@ const resetPasswordJoi = Joi.object({
 	}),
 });
 
-export const resetPassword = async (req, res) => {
+export const resetPassword1 = async (req, res) => {
 	// 1. take email from user
 	// 2. check if its a valid email address using joi
 	// 3. find a user with that email in database
