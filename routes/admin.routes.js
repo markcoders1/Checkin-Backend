@@ -20,6 +20,6 @@ router.route("/auto-check").get(autoCheck)
 
 router.route("/delete-user").get(verifyJWT, verifyAdmin, deleteUser)
 
-router.route("/update-any-profile").get(verifyJWT,verifyAdmin,updateAnyProfile)
+router.route("/update-any-profile").post(verifyJWT,verifyAdmin,updateAnyProfile)
 
 export default router
