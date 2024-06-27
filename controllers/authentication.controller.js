@@ -34,9 +34,9 @@ const generateAccessAndRefreshToken = async (userId,deviceId) => {
 		// console.log(user.devices);
 
 		let devices1 = Array(user.devices)[0]
-		console.log("THIS IS DEVICE ONE: ",devices1);
+		// console.log("THIS IS DEVICES: ",devices1);
 		const existingDevice = devices1.find(device => device.deviceId === deviceId);
-		console.log(existingDevice);
+		// console.log("THIS IS CURRENT DEVICE: ",existingDevice);
 		if (existingDevice) {
 			existingDevice.refreshToken = refreshToken;
 			
@@ -202,7 +202,7 @@ export const logoutFromAllDevicesExceptCurrent = async (req, res) => {
 
 		return res
 			.status(200)
-			.json({ message: "Logged Out from all devices successfully" });
+			.json({ message: "Logged Out from all devices except current successfully" });
 	} catch (error) {
 		console.log(error);
 		return res.status(400).json({ message: "error", error });
@@ -225,7 +225,7 @@ export const logoutFromAllDevices = async (req, res) => {
 
 		return res
 			.status(200)
-			.json({ message: "Logged Out from all devices except current successfully" });
+			.json({ message: "Logged Out from all devices successfully" });
 	} catch (error) {
 		console.log(error);
 		return res.status(400).json({ message: "error", error });

@@ -8,16 +8,11 @@
         //* google geolib npm module
         //* latitude and longetude of Markcoders (24.899659, 67.109078)
         //* will need to sign a jwt with a secret code, which then the backend will decode and then validate the check in check out
-    //ToDo logout specific devices
     
 //head backend
     //ToDo account activity monitoring
         //* add account logs for each user on a seperate database model
-    //ToDo get all devices user
     //ToDo get login/logout logs
-    //ToDo add API to see a specific user's all logged in devices
-    //ToDo when refresh token is expired or not ,of a current device it still gets forwarded, 
-        // make it so that if its valid only then forward it, if it is expired then generate a new one and then forward it  
 
 //head hybrid
 
@@ -87,7 +82,12 @@
 //Done log out from all devices
     //* will need frontend device parser
     //* google ua-parser-js
+//Done logout from all Devices except current
+//Done logout from specific device
+//Done logout from only current device
 //Done failed log in attempts
     //* will need its own database collection
     //* frontend sends email and password
     //* if password incorrect, x number of times, user cannot login anymore for a set amount of time
+//Done add API to see a specific user's all logged in devices
+    // This is already done. GetUser API shows complete user details. we can see user's all logged in devices through that
