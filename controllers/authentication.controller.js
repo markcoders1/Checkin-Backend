@@ -119,9 +119,9 @@ export const adminLogin = (req, res) => {
 
 export const refreshAccessToken = (req, res) => {
 	try {
-		const { refreshToken,device } = req.body;
-
-		if (refreshToken == null||device == null) return res.sendStatus(403);
+		const { refreshToken,deviceId } = req.body;
+		// console.log("DEVICE: " , device, " REFRESHTOKEN: " , refreshToken);
+		if (refreshToken == null||deviceId == null) return res.sendStatus(403);
 
 		jwt.verify(
 			refreshToken,
@@ -129,16 +129,16 @@ export const refreshAccessToken = (req, res) => {
 			async (err, decoded) => {
 				if (err) return res.sendStatus(403);
 				const user = await User.findOne({ email: decoded.email });
-
-				const session=user.devices.find(device=>device.deviceId==device)
-
-				if (session.refreshToken !== refreshToken||session==undefined)
-					return res.sendStatus(403);
+				// console.log("USER DEVICES: ",user.devices );
+				const devices1 = Array(user.devices)[0]
+				const session= devices1.find(device=>device.deviceId==deviceId)
+				// console.log("SESSION: ", session);
+				if (session.refreshToken !== refreshToken||session==undefined) return res.sendStatus(403);
 
 				const accessToken = jwt.sign(
 					{ email: decoded.email },
 					process.env.ACCESS_TOKEN_SECRET,
-					{ expiresIn: "15s" }
+					{ expiresIn: "15m" }
 				);
 				res.status(200).json({
 					message: "access Token refreshed",
