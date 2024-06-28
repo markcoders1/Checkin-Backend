@@ -12,6 +12,7 @@ import {
     // getUserDevices,
 } from "../controllers/admin.controller.js";
 import { verifyJWT, verifyAdmin } from "../middleware/auth.middleware.js";
+import cron from 'node-cron'
 
 const router = Router();
 
@@ -27,7 +28,7 @@ router.route("/getAttendancePDF").get(verifyJWT,verifyAdmin,getAttendancePDF)
 
 router.route("/toggleUserAccount").get(verifyJWT,verifyAdmin,toggleUserAccount)
 
-router.route("/auto-check").get(autoCheck)
+cron.schedule('0 */2 * * *', autoCheck);
 
 router.route("/delete-user").get(verifyJWT, verifyAdmin, deleteUser)
 
