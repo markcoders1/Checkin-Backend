@@ -4,7 +4,6 @@ import Joi from "joi";
 import { transporterConstructor ,handlebarConfig } from "../utils/email.js";
 import hbs from 'nodemailer-express-handlebars';
 import { Log } from "../models/logs.model.js";
-import { logger } from "../utils/utils.js";
 
 const loginUserJoi = Joi.object({
 	email: Joi.string().email().required().messages({
@@ -103,8 +102,7 @@ export const loginUser = async (req, res) => {
 		// 	deviceId: device,
 		// 	logType: "Login"
 		// })
-		logger(user.id, device, "Login")
-		
+		await Log().logger(user.id, device, "Login")
 
 
 		return res.status(200).json({
@@ -180,7 +178,7 @@ export const logoutUser = async(req, res) => {
 		user.save();
 	
 		//Log
-		logger(user.id, deviceId, "Logout")
+		await Log().logger(user.id, deviceId, "Logout")
 
 		res.status(200).json({message:"User logged out successfully"});
 	} catch (err) {
@@ -219,7 +217,7 @@ export const logoutFromAllDevicesExceptCurrent = async (req, res) => {
 		let deviceIds1 = deviceIds.filter(device => device !== deviceId)
 		
 		if (deviceIds.length > 0) {
-			logger(user.id, deviceIds1, "Logout")
+			await Log().logger(user.id, deviceIds1, "Logout")
 		}else{
 			console.log("Only signed in to current device, no other device to logout from");
 		}
@@ -253,7 +251,7 @@ export const logoutFromAllDevices = async (req, res) => {
 
 		//log
 		const deviceIds = temporaryUserDevices.map(device => device.deviceId);
-		logger(user.id ,  deviceIds , "Logout")
+		await Log().logger(user.id ,  deviceIds , "Logout")
 
 		return res
 			.status(200)
@@ -281,7 +279,7 @@ export const logoutFromSpecificDevice = async (req, res) => {
 		await user.save();
 
 		//log
-		logger(user.id, deviceId , "Logout")
+		await Log().logger(user.id, deviceId , "Logout")
 
 		return res
 			.status(200)

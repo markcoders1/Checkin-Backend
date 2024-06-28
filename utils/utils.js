@@ -1,4 +1,3 @@
-import { Log } from "../models/logs.model.js"
 
 export const uppercaseFirstLetter=(word)=>{
     let newword=word.toLowerCase()
@@ -36,29 +35,3 @@ export const unixToTime=(unix)=>{
     //     return `${time.slice(0,5)} AM`
     // }
 }
-
-export const logger = async (userId, deviceId, logType) => {
-// a function to create user logs, 
-    console.log("USERID : ", userId);
-    console.log("DEVICEID: ", deviceId);
-    console.log("LOGTYPE: ", logType);
-
-
-    // Ensure deviceId is always treated as an array
-    const deviceIds = Array.isArray(deviceId) ? deviceId : [deviceId];
-
-    // Iterate over each deviceId and create a log
-    for (const id of deviceIds) {
-        try {
-            // Log creation for each deviceId
-            await Log.create({
-                userId: userId,
-                deviceId: id,
-                logType: logType
-            });
-        } catch (error) {
-            console.error(`Error creating ${logType} log for deviceId ${id}:`, error);
-            // Handle error as needed
-        }
-    }
-};

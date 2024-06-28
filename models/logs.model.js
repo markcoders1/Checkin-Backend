@@ -27,30 +27,24 @@ const logSchema = new mongoose.Schema({
 	{ timestamps: true }
 )
 
-logSchema.methods.logger =  async (userId, deviceId, logType) => {
-    // a function to create user logs, 
-        console.log("USERID : ", userId);
-        console.log("DEVICEID: ", deviceId);
-        console.log("LOGTYPE: ", logType);
-    
-    
-        // Ensure deviceId is always treated as an array
-        const deviceIds = Array.isArray(deviceId) ? deviceId : [deviceId];
-    
+logSchema.methods.logger = async function(userId, deviceIds, logType) {
+    try {
+        // Ensure deviceIds is always treated as an array
+        const ids = Array.isArray(deviceIds) ? deviceIds : [deviceIds];
+
         // Iterate over each deviceId and create a log
-        for (const id of deviceIds) {
-            try {
-                // Log creation for each deviceId
-                await Log.create({
-                    userId: userId,
-                    deviceId: id,
-                    logType: logType
-                });
-            } catch (error) {
-                console.error(`Error creating ${logType} log for deviceId ${id}:`, error);
-                // Handle error as needed
-            }
+        for (const id of ids) {
+            await this.model('Log').create({
+                userId: userId,
+                deviceId: id,
+                logType: logType
+            });
+            console.log(`"${logType}" log created for deviceId: ${id}`);
         }
-    };
+    } catch (error) {
+        console.error(`Error creating ${logType} logs:`, error);
+        throw error;
+    }
+};
 
 export const Log = mongoose.model("Log", logSchema);
