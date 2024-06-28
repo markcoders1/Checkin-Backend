@@ -42,9 +42,11 @@ logSchema.methods.logger = async function (userId, deviceIds, logType) {
 				{},
 				{ sort: { createdAt: 1 }, limit: logCount - 9 }
 			);
+            console.log("oldest logs: ", oldestLogs);
+
 			for (const log of oldestLogs) {
-				await log.remove();
-                await log.save()
+                console.log(log);
+				await Log.deleteOne({_id: log.id});
 				console.log(`Oldest log removed for userId ${userId}`);
 			}
 		}

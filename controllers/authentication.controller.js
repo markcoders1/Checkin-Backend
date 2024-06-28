@@ -147,7 +147,7 @@ export const refreshAccessToken = (req, res) => {
 				const accessToken = jwt.sign(
 					{ email: decoded.email },
 					process.env.ACCESS_TOKEN_SECRET,
-					{ expiresIn: "15m" }
+					{ expiresIn: "40s" }
 				);
 				res.status(200).json({
 					message: "access Token refreshed",
