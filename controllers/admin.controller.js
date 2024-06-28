@@ -436,7 +436,7 @@ export const toggleUserAccount = async (req, res) => {
 	}
 };
 
-export const autoCheck = async (req, res) => {
+export const autoCheck = async () => {
 	try {
 		const usersCheckedIn = await User.find({ status: "checkin" });
 		const usersInBreak = await User.find({ status: "inbreak" });
@@ -486,11 +486,9 @@ export const autoCheck = async (req, res) => {
 				await user.save();
 			}
 		});
-		return res.status(200).json({ message: "auto-checked successfully" });
+		console.log(JSON.parse({ message: "auto-checked successfully" }))
 	} catch (error) {
-		return res
-			.status(400)
-			.json({ message: "something went wrong while auto-checking" });
+		return console.log(JSON.parse({ message: "something went wrong while auto-checking" }));
 	}
 };
 
