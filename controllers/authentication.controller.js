@@ -4,6 +4,7 @@ import Joi from "joi";
 import { transporterConstructor ,handlebarConfig } from "../utils/email.js";
 import hbs from 'nodemailer-express-handlebars';
 import { Log } from "../models/logs.model.js";
+import { logger } from "../utils/utils.js";
 
 const loginUserJoi = Joi.object({
 	email: Joi.string().email().required().messages({
@@ -97,11 +98,14 @@ export const loginUser = async (req, res) => {
 		const { accessToken, refreshToken } =
 			await generateAccessAndRefreshToken(user._id,device);
 		//Log
-		await Log.create({
-			userId : user.id,
-			deviceId: device,
-			logType: "Login"
-		})
+		// await Log.create({
+		// 	userId : user.id,
+		// 	deviceId: device,
+		// 	logType: "Login"
+		// })
+		logger(user.id, device, "Login")
+		
+
 
 		return res.status(200).json({
 			message: "logged in successfully",
@@ -176,11 +180,7 @@ export const logoutUser = async(req, res) => {
 		user.save();
 	
 		//Log
-		await Log.create({
-			userId : user.id,
-			deviceId: deviceId,
-			logType: "Logout"
-		})
+		logger(user.id, deviceId, "Logout")
 
 		res.status(200).json({message:"User logged out successfully"});
 	} catch (err) {
@@ -198,20 +198,34 @@ export const logoutFromAllDevicesExceptCurrent = async (req, res) => {
 			return res.status(400).json({message:"userId or deviceId Missing "})
 		}
 
-		jwt.verify(
+		const decoded = jwt.verify(
 			refreshToken,
-			process.env.REFRESH_TOKEN_SECRET,
-			async (err, decoded) => {
-				const user = await User.findOne({ email: decoded.email });
-				user.devices = user.devices.filter(
-					(device) => device.deviceId === deviceId
-				);
-		
-				await user.save();
-				user.save();
-			}
-		);
+			process.env.REFRESH_TOKEN_SECRET);
 
+		const user = await User.findOne({ email: decoded.email });
+
+		let temporaryUserDevices = user.devices
+
+		let devices = Array(user.devices)[0]
+
+		user.devices = devices.filter(
+			(device) => device.deviceId === deviceId);
+
+		await user.save();
+		
+		//Log
+		let deviceIds = temporaryUserDevices.map(device => device.deviceId);
+
+		let deviceIds1 = deviceIds.filter(device => device !== deviceId)
+		
+		if (deviceIds.length > 0) {
+			logger(user.id, deviceIds1, "Logout")
+		}else{
+			console.log("Only signed in to current device, no other device to logout from");
+		}
+			
+		
+		
 		return res
 			.status(200)
 			.json({ message: "Logged Out from all devices except current successfully" });
@@ -231,9 +245,15 @@ export const logoutFromAllDevices = async (req, res) => {
 
 		const user = await User.findById(userId);
 
+		let temporaryUserDevices = user.devices
+	
 		user.devices = []
 
 		await user.save();
+
+		//log
+		const deviceIds = temporaryUserDevices.map(device => device.deviceId);
+		logger(user.id ,  deviceIds , "Logout")
 
 		return res
 			.status(200)
@@ -259,6 +279,9 @@ export const logoutFromSpecificDevice = async (req, res) => {
 		);
 
 		await user.save();
+
+		//log
+		logger(user.id, deviceId , "Logout")
 
 		return res
 			.status(200)
