@@ -8,6 +8,7 @@ import "jspdf-autotable";
 import { unixTo24Time, unixToDate, unixToTime } from "../utils/utils.js";
 import * as fs from "fs";
 import { uppercaseFirstLetter } from "../utils/utils.js";
+import * as geolib from "geolib" ;
 
 export const test = async (req, res) => {
 	try {
@@ -636,6 +637,38 @@ export const updateProfile = async (req, res) => {
 		console.log(err);
 		return res.status(400).json({
 			message: "something went wrong while updating user profile",
+		});
+	}
+};
+
+
+export const verifyLocation = async (req,res) =>{
+	try {
+		const { latitude, longitude } = req.body;
+		const markcodersLatitude  = 24.899659;
+		const markcodersLongitude = 67.109078;
+
+		const distance = geolib.getDistance(
+			{ latitude, longitude },
+			{ latitude: markcodersLatitude, longitude: markcodersLongitude }
+		  );
+
+		  console.log("Distance = ",distance);
+
+
+		  if (distance <= 100) {
+		    console.log("In Range");
+			res.status(200).json({ isWithinRadius: true });
+		  } else {
+		console.log("Not in Range");
+			res.status(200).json({ isWithinRadius: false });
+		  }
+
+		
+	} catch (err) {
+		console.log(err);
+		return res.status(400).json({
+			message: "something went wrong while calculating user's distance from Markcoders location",
 		});
 	}
 };
