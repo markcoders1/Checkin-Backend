@@ -264,7 +264,7 @@ export const logoutFromAllDevices = async (req, res) => {
 
 export const logoutFromSpecificDevice = async (req, res) => {
 	try {
-		const { userId, deviceId } = req.body;
+		const { userId, deviceId } = req.params;
 
 		if (!userId || !deviceId) {
 			return res.status(400).json({message:"userId or deviceId Missing "})
