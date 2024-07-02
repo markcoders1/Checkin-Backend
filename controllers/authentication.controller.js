@@ -22,7 +22,9 @@ const loginUserJoi = Joi.object({
 			"string.max":"Password shoould be maximum 30 characters."
 		}),
 
-	device: Joi.string().required()
+	device: Joi.string().required(),
+	latitude: Joi.number().required(),
+	longitude: Joi.number().required()
 });
 
 const generateAccessAndRefreshToken = async (userId,deviceId) => {

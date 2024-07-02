@@ -10,7 +10,7 @@ import {
     logoutFromSpecificDevice,
     logoutFromAllDevices,
 } from '../controllers/authentication.controller.js'
-import { verifyJWT } from "../middleware/auth.middleware.js";
+import { verifyJWT,verifyLocation } from "../middleware/auth.middleware.js";
 import jwt from 'jsonwebtoken'
 
 const authenticateToken = (req, res, next) => {
@@ -28,7 +28,7 @@ const authenticateToken = (req, res, next) => {
 
 const router=Router()
 
-router.route("/login").post(loginUser)
+router.route("/login").post(verifyLocation,loginUser)
 
 router.route("/adminLogin").post(adminLogin)
 

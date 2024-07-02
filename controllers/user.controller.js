@@ -640,35 +640,3 @@ export const updateProfile = async (req, res) => {
 		});
 	}
 };
-
-
-export const verifyLocation = async (req,res) =>{
-	try {
-		const { latitude, longitude } = req.body;
-		const markcodersLatitude  = 24.899659;
-		const markcodersLongitude = 67.109078;
-
-		const distance = geolib.getDistance(
-			{ latitude, longitude },
-			{ latitude: markcodersLatitude, longitude: markcodersLongitude }
-		  );
-
-		  console.log("Distance = ",distance);
-
-
-		  if (distance <= 100) {
-		    console.log("In Range");
-			res.status(200).json({ isWithinRadius: true });
-		  } else {
-		console.log("Not in Range");
-			res.status(200).json({ isWithinRadius: false });
-		  }
-
-		
-	} catch (err) {
-		console.log(err);
-		return res.status(400).json({
-			message: "something went wrong while calculating user's distance from Markcoders location",
-		});
-	}
-};

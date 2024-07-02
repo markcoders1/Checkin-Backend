@@ -10,8 +10,7 @@ import {
 	sendEmail,
 	getAttendancePDF,
 	updateProfile,
-	isAdmin,
-	verifyLocation,
+	isAdmin
 } from "../controllers/user.controller.js";
 import { verifyJWT } from "../middleware/auth.middleware.js";
 import { autoCheck } from "../controllers/admin.controller.js";
@@ -39,7 +38,5 @@ router.route("/send-email").post(verifyJWT, sendEmail);
 router.route("/isAdmin").get(verifyJWT, isAdmin);
 
 router.route("/update-profile").post(verifyJWT, updateProfile);
-
-router.route("/verify-location").get(verifyLocation)
 
 export default router;
