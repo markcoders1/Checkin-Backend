@@ -124,7 +124,7 @@ export const registerUser = async (req, res) => {
 				res.status(400).json({ message: "user already exists" });
 			}
 
-			const user = await User.create(req.body);
+			const user = await User.create({...req.body,firstName,lastName});
 
 			return res.status(201).json({
 				createdUser: user,
