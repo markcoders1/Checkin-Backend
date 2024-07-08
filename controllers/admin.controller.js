@@ -115,22 +115,21 @@ export const registerUser = async (req, res) => {
 		if (error) {
 			console.log(error);
 			return res.status(400).json({ message: error.details });
-		} else {
-			firstName = uppercaseFirstLetter(firstName);
-			lastName = uppercaseFirstLetter(lastName);
-
-			const existedUser = await User.findOne({ email: req.body.email });
-			if (existedUser) {
-				res.status(400).json({ message: "user already exists" });
-			}
-
-			const user = await User.create({...req.body,firstName,lastName});
-
-			return res.status(201).json({
-				createdUser: user,
-				message: "User registered Successfully",
-			});
 		}
+		firstName = uppercaseFirstLetter(firstName);
+		lastName = uppercaseFirstLetter(lastName);
+
+		const existedUser = await User.findOne({ email: req.body.email });
+		if (existedUser) {
+			return res.status(400).json({ message: "user already exists" });
+		}
+
+		const user = await User.create({ ...req.body, firstName, lastName });
+
+		return res.status(201).json({
+			createdUser: user,
+			message: "User registered Successfully",
+		});
 	} catch (error) {
 		console.log(error);
 		res.status(400).json(error);
