@@ -1,8 +1,18 @@
 
-export const uppercaseFirstLetter=(word)=>{
-    let newword=word.toLowerCase()
-    return newword.charAt(0).toUpperCase()+newword.slice(1)
-}
+// console.log(uppercaseFirstLetter("brian o'connor")); // Output: "Brian O'Connor"
+// console.log(uppercaseFirstLetter("hi how are yOu")); // Output: "Hi How Are You"
+// console.log(uppercaseFirstLetter("mary-jane o'leary")); // Output: "Mary-Jane O'Leary"
+export const uppercaseFirstLetter = (fullname) => {
+    return fullname
+        .split(' ')
+        .map(word => 
+            word
+                .split(/(?=[-'`])/)
+                .map(segment => segment.charAt(0).toUpperCase() + segment.slice(1).toLowerCase())
+                .join('')
+        )
+        .join(' ');
+};
 export const unixToDate=(unix)=>{
     const date=new Date(unix)
     return date.toLocaleString().slice(0,10)
