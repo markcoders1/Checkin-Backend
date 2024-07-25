@@ -342,8 +342,7 @@ export const resetPassword1 = async (req, res) => {
 		subject: 'Reset Password',
 		template: 'reset-password', // Name of the template file without the extension
 		context: {
-		  firstName: user.firstName,
-		  lastName: user.lastName,
+		  fullName: user.fullName,
 		  link: `http://localhost:5173/password-reset/${resetToken}`,
 		  //   link: `https://hresque.vercel.app/password-reset/${resetToken}`,
 		},

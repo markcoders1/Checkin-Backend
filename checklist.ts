@@ -50,7 +50,7 @@
     //* flag their checkin  
     //! missing: to not include the flagged attendance while calculating average
 //Done edit user profile as user
-    //* made one Api that accepts atleast one from (firstName, lastName, CNIC , DOB, phone) and updates current user
+    //* made one Api that accepts atleast one from (fullName, CNIC , DOB, phone) and updates current user
 //Done update any user details as admin
     //* made one Api that accepts id and atleast one other field and updates it (except password, status, active, image, _id)
 //Done delete user 

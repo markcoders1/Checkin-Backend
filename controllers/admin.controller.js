@@ -7,21 +7,20 @@ import { unixToDate, unixToTime, unixTo24Time } from "../utils/utils.js";
 import fs from "fs";
 
 const registerUserJoi = Joi.object({
-	firstName: Joi.string().required().max(30).messages({
+	fullName: Joi.string().required().max(30).messages({
 		"any.required": "First name is required.",
 		"string.empty": "First name cannot be empty.",
-		"string.max": "User name should not exceed 30 characters.",
-	}),
-
-	lastName: Joi.string().required().max(30).messages({
-		"any.required": "Last name is required.",
-		"string.empty": "Last name cannot be empty.",
 		"string.max": "User name should not exceed 30 characters.",
 	}),
 
 	companyId: Joi.string().required().messages({
 		"any.required": "companyId is required.",
 		"string.empty": "companyId cannot be empty.",
+	}),
+
+	address: Joi.string().required().messages({
+		"any.required": "address is required.",
+		"string.empty": "address cannot be empty.",
 	}),
 
 	DOB: Joi.string()
@@ -36,7 +35,7 @@ const registerUserJoi = Joi.object({
 		}),
 
 	CNIC: Joi.string()
-		.required()
+		// .required()
 		.regex(/^[0-9]{13}$/)
 		.length(13)
 		.messages({
@@ -109,22 +108,21 @@ export const registerUser = async (req, res) => {
 			res.status(401).json({ message: "Unauthorized" });
 		}
 
-		let { firstName, lastName } = req.body;
+		let { fullName } = req.body;
 
 		const { error } = registerUserJoi.validate(req.body);
 		if (error) {
 			console.log(error);
 			return res.status(400).json({ message: error.details });
 		}
-		firstName = uppercaseFirstLetter(firstName);
-		lastName = uppercaseFirstLetter(lastName);
+		fullName = uppercaseFirstLetter(fullName);
 
 		const existedUser = await User.findOne({ email: req.body.email });
 		if (existedUser) {
 			return res.status(400).json({ message: "user already exists" });
 		}
 
-		const user = await User.create({ ...req.body, firstName, lastName });
+		const user = await User.create({ ...req.body, fullName});
 
 		return res.status(201).json({
 			createdUser: user,
@@ -321,7 +319,7 @@ export const getAttendancePDF = async (req, res) => {
 		doc.setFontSize(10);
 
 		doc.text(
-			`User: ${user.firstName} ${user.lastName} / ${user.companyId}`,
+			`User: ${user.fullName} / ${user.companyId}`,
 			14,
 			28
 		);
@@ -498,18 +496,18 @@ const updateAnyProfileJoi = Joi.object({
 		"string.max": "id should not exceed 30 characters.",
 		"string.min": "id should be more than 10 characters.",
 	}),
-	firstName: Joi.string().max(30).messages({
+	fullName: Joi.string().max(30).messages({
 		"string.empty": "First name cannot be empty.",
-		"string.max": "User name should not exceed 30 characters.",
-	}),
-
-	lastName: Joi.string().max(30).messages({
-		"string.empty": "Last name cannot be empty.",
 		"string.max": "User name should not exceed 30 characters.",
 	}),
 
 	companyId: Joi.string().messages({
 		"string.empty": "companyId cannot be empty.",
+	}),
+
+	address: Joi.string().required().messages({
+		"any.required": "address is required.",
+		"string.empty": "address cannot be empty.",
 	}),
 
 	DOB: Joi.string()
@@ -560,8 +558,7 @@ const updateAnyProfileJoi = Joi.object({
 		"string.email": "Invalid email format.",
 	}),
 }).or(
-	"firstName",
-	"lastName",
+	"fullName",
 	"companyId",
 	"CNIC",
 	"DOB",
@@ -570,7 +567,8 @@ const updateAnyProfileJoi = Joi.object({
 	"designation",
 	"teamLead",
 	"shift",
-	"department"
+	"department",
+	"address"
 );
 
 // Function to update specific User's details with the values provided by Admin

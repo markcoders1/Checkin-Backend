@@ -457,7 +457,7 @@ export const getAttendancePDF = async (req, res) => {
 		doc.setFontSize(10);
 
 		doc.text(
-			`User: ${user.firstName} ${user.lastName} / ${user.companyId}`,
+			`User: ${user.fullName} / ${user.companyId}`,
 			14,
 			28
 		);
@@ -560,13 +560,8 @@ export const isAdmin = async (req, res) => {
 };
 
 const updateDetailsJoi = Joi.object({
-	firstName: Joi.string().max(30).messages({
+	fullName: Joi.string().max(30).messages({
 		"string.empty": "First name cannot be empty.",
-		"string.max": "User name should not exceed 30 characters.",
-	}),
-
-	lastName: Joi.string().max(30).messages({
-		"string.empty": "Last name cannot be empty.",
 		"string.max": "User name should not exceed 30 characters.",
 	}),
 
@@ -591,11 +586,11 @@ const updateDetailsJoi = Joi.object({
 		.messages({
 			"string.pattern.base": "enter a valid Pakistani Phone number",
 		}),
-}).or("firstName", "lastName", "CNIC", "DOB", "phone");
+}).or("fullName",  "CNIC", "DOB", "phone");
 
 export const updateProfile = async (req, res) => {
 	try {
-		const { firstName, lastName, DOB, CNIC, phone } = req.body;
+		const { fullName, DOB, CNIC, phone } = req.body;
 		console.log("req.body: ", req.body);
 		console.log("req.user: ", req.user);
 
@@ -605,15 +600,10 @@ export const updateProfile = async (req, res) => {
 			return res.status(400).json({ message: error.details });
 		}
 
-		if (firstName !== undefined) {
-			firstName = uppercaseFirstLetter(firstName);
+		if (fullName !== undefined) {
+			fullName = uppercaseFirstLetter(fullName);
 			console.log("updating first name");
-			req.user.firstName = firstName;
-		}
-		if (lastName !== undefined) {
-			lastName = uppercaseFirstLetter(lastName);
-			console.log("updating last name");
-			req.user.lastName = lastName;
+			req.user.fullName = fullName;
 		}
 		if (DOB !== undefined) {
 			console.log("updating DOB");

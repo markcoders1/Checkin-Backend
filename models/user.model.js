@@ -2,7 +2,6 @@ import mongoose, { Schema } from "mongoose";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
-
 const deviceSchema = new mongoose.Schema({
 	deviceId: {
 		type: String,
@@ -20,52 +19,15 @@ const deviceSchema = new mongoose.Schema({
 
 const userSchema = new mongoose.Schema(
 	{
-		firstName: {
+		// required fields {fullName, phone, email, adress, designation, DOB, department, password, shift, role}
+		fullName: {
 			type: String,
 			required: true,
-		},
-		lastName: {
-			type: String,
-			required: true,
-		},
-		companyId: {
-			type: String,
-			required: true,
-		},
-		DOB: {
-			type: String,
-			required: true,
-		},
-		CNIC: {
-			type: String,
-			required: true,
-			unique: true,
 		},
 		phone: {
 			type: String,
 			required: true,
 			unique: true,
-		},
-		designation: {
-			type: String,
-			required: true,
-		},
-		teamLead: {
-			type: String,
-			required: true,
-		},
-		shift: {
-			type: String,
-			required: true,
-		},
-		department: {
-			type: String,
-			required: true,
-		},
-		role: {
-			type: String,
-			required: true,
-			default: "admin",
 		},
 		email: {
 			type: String,
@@ -75,9 +37,45 @@ const userSchema = new mongoose.Schema(
 			trim: true,
 			index: true,
 		},
+		address: {
+			type: String,
+			required: true,
+		},
+		designation: {
+			type: String,
+			required: true,
+		},
+		DOB: {
+			type: String,
+			required: true,
+		},
+		department: {
+			type: String,
+			required: true,
+		},
 		password: {
 			type: String,
 			required: [true, "Password is required"],
+		},
+		shift: {
+			type: String,
+			required: true,
+		},
+		companyId: {
+			type: String,
+		},
+		CNIC: {
+			type: String,
+			// required: true,
+			unique: true,
+		},
+		teamLead: {
+			type: String,
+		},
+		role: {
+			type: String,
+			required: true,
+			default: "admin",
 		},
 		devices:[deviceSchema],
 		status: {
@@ -90,9 +88,9 @@ const userSchema = new mongoose.Schema(
 			type: Boolean,
 			default: true,
 		},
-		wrongLogins:{
-			type:Number,
-			default:0
+		wrongLogins: {
+			type: Number,
+			default: 0,
 		},
 		image: {
 			type: String,
