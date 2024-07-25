@@ -2,7 +2,7 @@ import { User } from "../models/user.model.js";
 import { Attendance } from "../models/attendance.model.js";
 import { uppercaseFirstLetter } from "../utils/utils.js";
 import Joi from "joi";
-import {jsPDF} from "jspdf";
+import { jsPDF } from "jspdf";
 import { unixToDate, unixToTime, unixTo24Time } from "../utils/utils.js";
 import fs from "fs";
 
@@ -85,14 +85,15 @@ const registerUserJoi = Joi.object({
 		.max(30)
 		.pattern(
 			new RegExp(
-				"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_,+=/-\/?.]).+$"
+				"^(?=.*[a-z])(?=.*[A-Z])(?=.*d)(?=.*[!@#$%^&*()_,+=/-/?.]).+$"
 			)
 		)
 		.required()
 		.messages({
 			"string.min": "Password should be minimum 6 characters.",
 			"string.max": "Password should be maximum 30 characters.",
-			"string.pattern.base":"Password must include at least one uppercase letter, one lowercase letter, one number, and one special character.",
+			"string.pattern.base":
+				"Password must include at least one uppercase letter, one lowercase letter, one number, and one special character.",
 			"any.required": "Password is required.",
 		}),
 
@@ -122,7 +123,7 @@ export const registerUser = async (req, res) => {
 			return res.status(400).json({ message: "user already exists" });
 		}
 
-		const user = await User.create({ ...req.body, fullName});
+		const user = await User.create({ ...req.body, fullName });
 
 		return res.status(201).json({
 			createdUser: user,
@@ -225,7 +226,6 @@ export const getUser = async (req, res) => {
 // 			});
 // 		}
 // 	};
-	
 
 export const deleteUser = async (req, res) => {
 	try {
@@ -234,7 +234,7 @@ export const deleteUser = async (req, res) => {
 		}
 		const userId = req.query.id;
 		if (typeof userId !== "string") {
-			console.log(userId)
+			console.log(userId);
 			console.log("ID must be string");
 			return res.status(400).json({ message: "ID must be string" });
 		}
@@ -243,17 +243,19 @@ export const deleteUser = async (req, res) => {
 			console.log("user does not exist");
 			return res.status(400).json({ message: "user does not exist" });
 		}
-		console.log("User detected: ",user);
+		console.log("User detected: ", user);
 
 		//deleting user
-		const deletedUser = await User.deleteOne({ _id: userId});
+		const deletedUser = await User.deleteOne({ _id: userId });
 		console.log("Deleted user: ", deletedUser);
 
 		//deleting user attendance
-		const deletedAttendance = await Attendance.deleteMany({userId: userId})
-		console.log("Deleted user Attendance: ", deletedAttendance )
+		const deletedAttendance = await Attendance.deleteMany({
+			userId: userId,
+		});
+		console.log("Deleted user Attendance: ", deletedAttendance);
 
-		return res.status(200).json({ message : "User deleted Successfully" });
+		return res.status(200).json({ message: "User deleted Successfully" });
 	} catch (error) {
 		console.log(error);
 		res.status(400).json({ error });
@@ -318,11 +320,7 @@ export const getAttendancePDF = async (req, res) => {
 
 		doc.setFontSize(10);
 
-		doc.text(
-			`User: ${user.fullName} / ${user.companyId}`,
-			14,
-			28
-		);
+		doc.text(`User: ${user.fullName} / ${user.companyId}`, 14, 28);
 
 		doc.setFontSize(18);
 
@@ -435,6 +433,7 @@ export const toggleUserAccount = async (req, res) => {
 
 export const autoCheck = async () => {
 	try {
+		console.log("autoCheck start");
 		const usersCheckedIn = await User.find({ status: "checkin" });
 		const usersInBreak = await User.find({ status: "inbreak" });
 		// merge
@@ -447,7 +446,6 @@ export const autoCheck = async () => {
 				date: { $gte: new Date(new Date() - 1 * 60 * 60 * 24 * 1000) },
 			});
 			const lastAttendance = userAttendance[userAttendance.length - 1];
-
 			//get duration
 			const currentTime = new Date().valueOf();
 			const duration = currentTime - lastAttendance.checkIn;
@@ -471,6 +469,7 @@ export const autoCheck = async () => {
 						breakInTime +
 						lastAttendance.breakDuration;
 					user.status = "checkin";
+					console.log("user BreakOut Successfully");
 				}
 				//checkout
 				lastAttendance.checkOut = new Date().valueOf();
@@ -481,11 +480,14 @@ export const autoCheck = async () => {
 				user.status = "checkout";
 				await lastAttendance.save();
 				await user.save();
+				console.log("User CheckOut Successfully ", user?.fullName);
 			}
 		});
-		console.log(JSON.parse({ message: "auto-checked successfully" }))
+		console.log(JSON.parse({ message: "auto-checked successfully" }));
 	} catch (error) {
-		return console.log(JSON.parse({ message: "something went wrong while auto-checking" }));
+		return console.log(
+			JSON.parse({ message: "something went wrong while auto-checking" })
+		);
 	}
 };
 
