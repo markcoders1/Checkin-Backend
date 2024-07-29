@@ -561,7 +561,7 @@ export const isAdmin = async (req, res) => {
 
 const updateDetailsJoi = Joi.object({
 	fullName: Joi.string().max(30).messages({
-		"string.empty": "First name cannot be empty.",
+		"string.empty": "Full name cannot be empty.",
 		"string.max": "User name should not exceed 30 characters.",
 	}),
 
@@ -602,7 +602,6 @@ export const updateProfile = async (req, res) => {
 
 		if (fullName !== undefined) {
 			fullName = uppercaseFirstLetter(fullName);
-			console.log("updating first name");
 			req.user.fullName = fullName;
 		}
 		if (DOB !== undefined) {
@@ -612,6 +611,10 @@ export const updateProfile = async (req, res) => {
 		if (CNIC !== undefined) {
 			console.log("updating CNIC");
 			req.user.CNIC = CNIC;
+		}
+		if (phone !== undefined) {
+			console.log("updating phone");
+			req.user.phone = phone;
 		}
 		if (phone !== undefined) {
 			console.log("updating phone");

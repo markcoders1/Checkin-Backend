@@ -96,7 +96,7 @@ const registerUserJoi = Joi.object({
 		"string.email": "Invalid email format.",
 	}),
 	address: Joi.string().messages({
-		"string.empty": "First name cannot be empty.",
+		"string.empty": "address cannot be empty.",
 	}),
 
 });
@@ -494,7 +494,7 @@ const updateAnyProfileJoi = Joi.object({
 		"string.min": "id should be more than 10 characters.",
 	}),
 	fullName: Joi.string().max(30).messages({
-		"string.empty": "First name cannot be empty.",
+		"string.empty": "Full name cannot be empty.",
 		"string.max": "User name should not exceed 30 characters.",
 	}),
 
