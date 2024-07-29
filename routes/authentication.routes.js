@@ -28,7 +28,7 @@ const authenticateToken = (req, res, next) => {
 
 const router=Router()
 
-router.route("/login").post(verifyLocation,loginUser)
+router.route("/login").post(loginUser)
 
 router.route("/adminLogin").post(adminLogin)
 

@@ -23,8 +23,6 @@ const loginUserJoi = Joi.object({
 		}),
 
 	device: Joi.string().required(),
-	latitude: Joi.number().required(),
-	longitude: Joi.number().required()
 });
 
 const generateAccessAndRefreshToken = async (userId,deviceId) => {

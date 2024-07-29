@@ -28,10 +28,7 @@ router.route("/getAttendancePDF").get(verifyJWT,verifyAdmin,getAttendancePDF)
 
 router.route("/toggleUserAccount").get(verifyJWT,verifyAdmin,toggleUserAccount)
 
-cron.schedule('0 */2 * * *', autoCheck); // every 2 hours
-
-// cron.schedule("*/1 * * * *", autoCheck) // every 1 min, for testing
-// router.route("/auto-check").get(autoCheck)
+cron.schedule('0 */2 * * *', autoCheck);
 
 router.route("/delete-user").get(verifyJWT, verifyAdmin, deleteUser)
 
