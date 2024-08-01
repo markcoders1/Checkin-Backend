@@ -9,12 +9,14 @@ import { unixTo24Time, unixToDate, unixToTime } from "../utils/utils.js";
 import * as fs from "fs";
 import { uppercaseFirstLetter } from "../utils/utils.js";
 import * as geolib from "geolib" ;
+import { resetPasswordJoi,updateDetailsJoi } from "../utils/Joi.js";
 
 export const test = async (req, res) => {
 	try {
-		// const token = jwt.sign({email:req.body.email},process.env.PASSWORD_TOKEN_SECRET,{"expiresIn":'10h'})
-		// const token = jwt.verify(req.body.token,process.env.PASSWORD_TOKEN_SECRET,(err,decoded)=>{
-			console.log(req.ip)
+		
+		const user = await User.findById('665a41b9ffebf5dbc3969782')
+		user.devices = []
+		user.save()
 		
 		return res.status(200).json({ message: "hi" });
 	} catch (err) {
@@ -158,12 +160,8 @@ export const breakUser = async (req, res) => {
 				status: user.status,
 			});
 		} else if (status === "inbreak") {
-			// break out:
 
-			//get last object in attendance array
 			let objToChange = array[array.length - 1];
-			//put new time value in breakIn which is inside this object
-			//if array is empty, simply push else append at the end
 			objToChange.breakOut.push(new Date().valueOf());
 			const breakOutTime =
 				objToChange.breakOut[objToChange.breakOut.length - 1];
@@ -216,24 +214,10 @@ export const getUserAttendance = async (req, res) => {
 	}
 };
 
-const resetPasswordJoi = Joi.object({
-	email: Joi.string().email().required().messages({
-		"any.required": "Email is required.",
-		"string.empty": "Email cannot be empty.",
-		"string.email": "Invalid email format.",
-	}),
-});
-
 export const resetPassword = async (req, res) => {
-	// 1. take email from user (req.body)
-	// 2. first check if there is a user with that email in database
-	// 3. generate a new OTP,
-	// 4. set that otp as new password
-	// 5. send otp to user through email
 	try {
 		console.log(req.body);
 
-		///Joi email check
 		const { error } = resetPasswordJoi.validate(req.body);
 		if (error) {
 			console.log(error);
@@ -424,10 +408,12 @@ export const getAttendancePDF = async (req, res) => {
 				return res.status(400).json({ message: "user not found" });
 		}
 
-		const result = await Attendance.find({
+
+		let result = await Attendance.find({
 			userId: userId,
 			date: { $gte: from, $lte: to },
 		});
+
 		const numberOfEntries = result.length;
 
 		const doc = new jsPDF();
@@ -440,6 +426,8 @@ export const getAttendancePDF = async (req, res) => {
 			"Break Duration",
 			"Net Duration",
 		];
+
+
 		const rows = result.map((e) => {
 			return [
 				unixToDate(e.date),
@@ -450,6 +438,7 @@ export const getAttendancePDF = async (req, res) => {
 				unixTo24Time(e.netDuration),
 			];
 		});
+		
 
 		const logoData = fs.readFileSync("utils/ff-01.png", "base64");
 		doc.addImage(logoData, "PNG", 85, 0, 30, 30);
@@ -474,6 +463,8 @@ export const getAttendancePDF = async (req, res) => {
 
 		let finalY = doc.lastAutoTable.finalY + 10;
 
+		console.log(result)
+
 		const totalDuration = result
 			.map((e) => {
 				if (e.totalDuration == undefined) {
@@ -482,7 +473,7 @@ export const getAttendancePDF = async (req, res) => {
 					return e.totalDuration;
 				}
 			})
-			.reduce((p, c) => p + c);
+			.reduce((p, c) => p + c,0);
 
 		const breakDuration = result
 			.map((e) => {
@@ -492,7 +483,7 @@ export const getAttendancePDF = async (req, res) => {
 					return e.breakDuration;
 				}
 			})
-			.reduce((p, c) => p + c);
+			.reduce((p, c) => p + c,0);
 
 		const netDuration = result
 			.map((e) => {
@@ -502,7 +493,8 @@ export const getAttendancePDF = async (req, res) => {
 					return e.netDuration;
 				}
 			})
-			.reduce((p, c) => p + c);
+			.reduce((p, c) => p + c,0);
+
 
 		const columns2 = ["total Duration", "Break Duration", "Net Duration"];
 		const rows2 = [
@@ -547,6 +539,7 @@ export const getAttendancePDF = async (req, res) => {
 		res.setHeader('hi','ho')
 		res.status(200).send(pdfBuffer);
 	} catch (err) {
+		console.log(err)
 		return res.status(400).json({
 			message:
 				"something went wrong while creating your pdf, please contact management",
@@ -559,38 +552,9 @@ export const isAdmin = async (req, res) => {
 	res.status(200).json({ isAdmin: req.user.role });
 };
 
-const updateDetailsJoi = Joi.object({
-	fullName: Joi.string().max(30).messages({
-		"string.empty": "Full name cannot be empty.",
-		"string.max": "User name should not exceed 30 characters.",
-	}),
-
-	DOB: Joi.string()
-		.max(30)
-		.regex(/^((?:19|20)\d\d)-(0?[1-9]|1[012])-(0?[1-9]|[12][0-9]|3[01])$/)
-		.messages({
-			"string.max": "DOB should not exceed 30 characters.",
-			"string.pattern.base": "enter a valid DOB ex:(YYYY-MM-DD)",
-		}),
-
-	CNIC: Joi.string()
-		.regex(/^[0-9]{13}$/)
-		.length(13)
-		.messages({
-			"string.length": "enter a valid CNIC ex:(4230100000000)",
-			"string.pattern.base": "enter a valid CNIC ex:(4230100000000)",
-		}),
-
-	phone: Joi.string()
-		.regex(/^((\+92)?(0092)?(92)?(0)?)(3)([0-9]{9})$/)
-		.messages({
-			"string.pattern.base": "enter a valid Pakistani Phone number",
-		}),
-}).or("fullName",  "CNIC", "DOB", "phone");
-
 export const updateProfile = async (req, res) => {
 	try {
-		const { fullName, DOB, CNIC, phone } = req.body;
+		let { fullName, DOB, CNIC, phone } = req.body;
 		console.log("req.body: ", req.body);
 		console.log("req.user: ", req.user);
 

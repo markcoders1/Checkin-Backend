@@ -1,29 +1,9 @@
 import { User } from "../models/user.model.js";
 import jwt, { decode } from "jsonwebtoken";
-import Joi from "joi";
 import { transporterConstructor ,handlebarConfig } from "../utils/email.js";
 import hbs from 'nodemailer-express-handlebars';
 import { Log } from "../models/logs.model.js";
-
-const loginUserJoi = Joi.object({
-	email: Joi.string().email().required().messages({
-		"any.required": "Email is required.",
-		"string.empty": "Email cannot be empty.",
-		"string.email": "Invalid email format.",
-	}),
-
-	password: Joi.string()
-		.required()
-		.min(6)
-		.max(30)
-		.messages({
-			"string.min": "Password should be minimum 6 characters.",
-			"any.required": "Password is required.",
-			"string.max":"Password shoould be maximum 30 characters."
-		}),
-
-	device: Joi.string().required(),
-});
+import { loginUserJoi,resetPasswordJoi,resetPassword2Joi } from "../utils/Joi.js";
 
 const generateAccessAndRefreshToken = async (userId,deviceId) => {
 	try {
@@ -31,16 +11,13 @@ const generateAccessAndRefreshToken = async (userId,deviceId) => {
 		
 		const accessToken = user.generateAccessToken();
 		const refreshToken = user.generateRefreshToken();
-		// Check if device already exists
-		// console.log(user.devices);
 
-		let devices1 = Array(user.devices)[0]
-		// console.log("THIS IS DEVICES: ",devices1);
-		const existingDevice = devices1.find(device => device.deviceId === deviceId);
-		// console.log("THIS IS CURRENT DEVICE: ",existingDevice);
+		
+		const existingDevice = user.devices.find(device => device.deviceId === deviceId);
+		console.log("existing device",existingDevice)
+
 		if (existingDevice) {
 			existingDevice.refreshToken = refreshToken;
-			
 		} else {
 			user.devices.push({
 			deviceId,
@@ -62,6 +39,7 @@ const generateAccessAndRefreshToken = async (userId,deviceId) => {
 export const loginUser = async (req, res) => {
 	try {
 		const { email, password, device } = req.body;
+		console.log(device)
 		const { error } = loginUserJoi.validate(req.body);
 		if (error) {
 			console.log(error);
@@ -132,6 +110,7 @@ export const refreshAccessToken = (req, res) => {
 		// console.log("DEVICE: " , device, " REFRESHTOKEN: " , refreshToken);
 		if (refreshToken == null||deviceId == null) return res.sendStatus(403);
 
+
 		jwt.verify(
 			refreshToken,
 			process.env.REFRESH_TOKEN_SECRET,
@@ -139,8 +118,11 @@ export const refreshAccessToken = (req, res) => {
 				if (err) return res.sendStatus(403);
 				const user = await User.findOne({ email: decoded.email });
 				// console.log("USER DEVICES: ",user.devices );
-				const devices1 = Array(user.devices)[0]
-				const session= devices1.find(device=>device.deviceId==deviceId)
+				// console.log(user.devices)
+				// const devices1 = Array(user.devices)[0]
+
+				const session= user.devices.find(device=>device.deviceId==deviceId)
+				console.log(session)
 				// console.log("SESSION: ", session);
 				if (session.refreshToken !== refreshToken||session==undefined) return res.sendStatus(403);
 
@@ -290,25 +272,11 @@ export const logoutFromSpecificDevice = async (req, res) => {
 	}
 };
 
-const resetPasswordJoi = Joi.object({
-	email: Joi.string().email().required().messages({
-		"any.required": "Email is required.",
-		"string.empty": "Email cannot be empty.",
-		"string.email": "Invalid email format.",
-	}),
-});
-
 export const resetPassword1 = async (req, res) => {
-	// 1. take email from user
-	// 2. check if its a valid email address using joi
-	// 3. find a user with that email in database
-	// 4. generate a new token
-	// 5. send email with link made with that token
 	
 	try {
 		console.log(req.query);
 
-		//Joi email check
 		const { error } = resetPasswordJoi.validate(req.query);
 		if (error) {
 			console.log(error);
@@ -371,27 +339,7 @@ export const resetPassword1 = async (req, res) => {
 };
 
 
-const resetPassword2Joi = Joi.object({
-	password: Joi.string()
-		.min(6)
-		.max(30)
-		.pattern(
-			new RegExp(
-				"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_,+=/-\/?.]).+$"
-			)
-		)
-		.required()
-		.messages({
-			"string.min": "Password should be minimum 6 characters.",
-			"string.max": "Password should be maximum 30 characters.",
-			"string.pattern.base":"Password must include at least one uppercase letter, one lowercase letter, one number, and one special character.",
-			"any.required": "Password is required.",
-		}),
-	token: Joi.string().required().messages({
-			"any.required": "token is required.",
-			"string.empty": "token cannot be empty.",
-		}),
-});
+
 export const resetPassword2 = async (req,res) =>{
 	try {
 		// decode the token 
@@ -408,7 +356,6 @@ export const resetPassword2 = async (req,res) =>{
 				message: "There is no user registered with the specified email"
 			});
 		}
-		//joi password strength check
 		const { error } = resetPassword2Joi.validate(req.body);
 		if (error) {
 			console.log(error);

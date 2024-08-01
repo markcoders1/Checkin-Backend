@@ -19,11 +19,10 @@ export const unixToDate=(unix)=>{
 }
 
 export const unixTo24Time=(unix)=>{
-    if(unix==undefined){
+    if(unix==undefined||isNaN(unix)){
         return `N/a`
     }
     let time = new Date(unix).toISOString()
-    console.log(time)
     time =time.slice(11,19)
     return `${time.slice(0,5)}`
 }

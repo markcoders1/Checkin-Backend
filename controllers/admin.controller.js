@@ -1,105 +1,10 @@
 import { User } from "../models/user.model.js";
 import { Attendance } from "../models/attendance.model.js";
 import { uppercaseFirstLetter } from "../utils/utils.js";
-import Joi from "joi";
 import { jsPDF } from "jspdf";
 import { unixToDate, unixToTime, unixTo24Time } from "../utils/utils.js";
 import fs from "fs";
 
-const registerUserJoi = Joi.object({
-	fullName: Joi.string().required().max(30).messages({
-		"any.required": "Full name is required.",
-		"string.empty": "Full name cannot be empty.",
-		"string.max": "User name should not exceed 30 characters.",
-	}),
-
-	companyId: Joi.string().required().messages({
-		"any.required": "companyId is required.",
-		"string.empty": "companyId cannot be empty.",
-	}),
-
-	DOB: Joi.string()
-		.required()
-		.max(30)
-		.regex(/^((?:19|20)\d\d)-(0?[1-9]|1[012])-(0?[1-9]|[12][0-9]|3[01])$/)
-		.messages({
-			"any.required": "DOB is required.",
-			"string.empty": "DOB cannot be empty.",
-			"string.max": "DOB should not exceed 30 characters.",
-			"string.pattern.base": "enter a valid DOB ex:(YYYY-MM-DD)",
-		}),
-
-	CNIC: Joi.string().required()
-		.regex(/^[0-9]{13}$/)
-		.length(13)
-		.messages({
-			"string.length": "enter a valid CNIC ex:(4230100000000)",
-			"string.pattern.base": "enter a valid CNIC ex:(4230100000000)",
-		}),
-
-	phone: Joi.string()
-		.required()
-		.regex(/^((\+92)?(0092)?(92)?(0)?)(3)([0-9]{9})$/)
-		.messages({
-			"string.pattern.base": "enter a valid Pakistani Phone number",
-		}),
-
-	designation: Joi.string().required().max(30).messages({
-		"any.required": "designation is required.",
-		"string.empty": "designation cannot be empty.",
-		"string.max": "designation should not exceed 30 characters.",
-	}),
-
-	teamLead: Joi.string().required().max(30).messages({
-		"any.required": "teamLead is required.",
-		"string.empty": "teamLead cannot be empty.",
-		"string.max": "teamLead should not exceed 30 characters.",
-	}),
-
-	shift: Joi.string().required().max(30).messages({
-		"any.required": "shift is required.",
-		"string.empty": "shift cannot be empty.",
-		"string.max": "shift should not exceed 30 characters.",
-	}),
-
-	department: Joi.string().required().max(30).messages({
-		"any.required": "department is required.",
-		"string.empty": "department cannot be empty.",
-		"string.max": "department should not exceed 30 characters.",
-	}),
-
-	role: Joi.string().valid("admin", "user").required().messages({
-		"any.only": "role must be either admin or user",
-		"any.required": "role is required",
-		"string.base": "role must be a string",
-	}),
-
-	password: Joi.string()
-		.min(6)
-		.max(30)
-		.pattern(
-			new RegExp(
-				"^(?=.*[a-z])(?=.*[A-Z])(?=.*d)(?=.*[!@#$%^&*()_,+=/-/?.]).+$"
-			)
-		)
-		.messages({
-			"string.min": "Password should be minimum 6 characters.",
-			"string.max": "Password should be maximum 30 characters.",
-			"string.pattern.base":
-				"Password must include at least one uppercase letter, one lowercase letter, one number, and one special character.",
-			"any.required": "Password is required.",
-		}),
-
-	email: Joi.string().email().required().messages({
-		"any.required": "Email is required.",
-		"string.empty": "Email cannot be empty.",
-		"string.email": "Invalid email format.",
-	}),
-	address: Joi.string().messages({
-		"string.empty": "address cannot be empty.",
-	}),
-
-});
 export const registerUser = async (req, res) => {
 	try {
 		if (req.user.role !== "admin") {
@@ -266,6 +171,9 @@ export const getAttendancePDF = async (req, res) => {
 		if (!from) {
 			from = new Date(date.getFullYear(), date.getMonth(), 1).valueOf();
 		}
+
+		
+
 		if (!to) {
 			to = from + 2678400000;
 			if (to > date.valueOf()) {
@@ -274,6 +182,9 @@ export const getAttendancePDF = async (req, res) => {
 		} else if (to - from > 2678400000) {
 			to = from + 2678400000;
 		}
+
+		
+
 		if (!userId) {
 			userId = req.user.id;
 			user = req.user;
@@ -282,11 +193,14 @@ export const getAttendancePDF = async (req, res) => {
 			if (!user)
 				return res.status(400).json({ message: "user not found" });
 		}
+		
 
 		const result = await Attendance.find({
 			userId: userId,
 			date: { $gte: from, $lte: to },
-		});
+		})||[{}];
+
+		
 		const numberOfEntries = result.length;
 
 		const doc = new jsPDF();
@@ -337,7 +251,7 @@ export const getAttendancePDF = async (req, res) => {
 					return e.totalDuration;
 				}
 			})
-			.reduce((p, c) => p + c);
+			.reduce((p, c) => p + c,0);
 
 		const breakDuration = result
 			.map((e) => {
@@ -347,7 +261,7 @@ export const getAttendancePDF = async (req, res) => {
 					return e.breakDuration;
 				}
 			})
-			.reduce((p, c) => p + c);
+			.reduce((p, c) => p + c,0);
 
 		const netDuration = result
 			.map((e) => {
@@ -357,7 +271,7 @@ export const getAttendancePDF = async (req, res) => {
 					return e.netDuration;
 				}
 			})
-			.reduce((p, c) => p + c);
+			.reduce((p, c) => p + c,0);
 
 		const columns2 = ["total Duration", "Break Duration", "Net Duration"];
 		const rows2 = [
@@ -486,88 +400,6 @@ export const autoCheck = async () => {
 	}
 };
 
-const updateAnyProfileJoi = Joi.object({
-	id: Joi.string().required().max(30).min(10).messages({
-		"any.required": "id is required.",
-		"string.empty": "id cannot be empty.",
-		"string.max": "id should not exceed 30 characters.",
-		"string.min": "id should be more than 10 characters.",
-	}),
-	fullName: Joi.string().max(30).messages({
-		"string.empty": "Full name cannot be empty.",
-		"string.max": "User name should not exceed 30 characters.",
-	}),
-
-	companyId: Joi.string().messages({
-		"string.empty": "companyId cannot be empty.",
-	}),
-
-	address: Joi.string().required().messages({
-		"any.required": "address is required.",
-		"string.empty": "address cannot be empty.",
-	}),
-
-	DOB: Joi.string()
-		.max(30)
-		.regex(/^((?:19|20)\d\d)-(0?[1-9]|1[012])-(0?[1-9]|[12][0-9]|3[01])$/)
-		.messages({
-			"string.empty": "DOB cannot be empty.",
-			"string.max": "DOB should not exceed 30 characters.",
-			"string.pattern.base": "enter a valid DOB ex:(YYYY-MM-DD)",
-		}),
-
-	CNIC: Joi.string()
-		.regex(/^[0-9]{13}$/)
-		.length(13)
-		.messages({
-			"string.length": "enter a valid CNIC ex:(4230100000000)",
-			"string.pattern.base": "enter a valid CNIC ex:(4230100000000)",
-		}),
-
-	phone: Joi.string()
-		.regex(/^((\+92)?(0092)?(92)?(0)?)(3)([0-9]{9})$/)
-		.messages({
-			"string.pattern.base": "enter a valid Pakistani Phone number",
-		}),
-
-	designation: Joi.string().max(30).messages({
-		"string.empty": "designation cannot be empty.",
-		"string.max": "designation should not exceed 30 characters.",
-	}),
-
-	teamLead: Joi.string().max(30).messages({
-		"string.empty": "teamLead cannot be empty.",
-		"string.max": "teamLead should not exceed 30 characters.",
-	}),
-
-	shift: Joi.string().max(30).messages({
-		"string.empty": "shift cannot be empty.",
-		"string.max": "shift should not exceed 30 characters.",
-	}),
-
-	department: Joi.string().max(30).messages({
-		"string.empty": "department cannot be empty.",
-		"string.max": "department should not exceed 30 characters.",
-	}),
-
-	email: Joi.string().email().messages({
-		"string.empty": "Email cannot be empty.",
-		"string.email": "Invalid email format.",
-	}),
-}).or(
-	"fullName",
-	"companyId",
-	"CNIC",
-	"DOB",
-	"phone",
-	"email",
-	"designation",
-	"teamLead",
-	"shift",
-	"department",
-	"address"
-);
-
 // Function to update specific User's details with the values provided by Admin
 const updateObject = (target, updates) => {
 	for (const key in updates) {
@@ -583,7 +415,6 @@ const updateObject = (target, updates) => {
 
 export const updateAnyProfile = async (req, res) => {
 	try {
-		//joi validate
 		const { error, value } = updateAnyProfileJoi.validate(req.body);
 		if (error) {
 			console.log(error);
