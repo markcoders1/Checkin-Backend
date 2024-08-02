@@ -270,13 +270,6 @@ export const resetPassword = async (req, res) => {
 
 const changePasswordJoi = Joi.object({
 	oldPassword: Joi.string()
-		.pattern(
-			new RegExp(
-				"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$"
-			)
-		)
-		.min(6)
-		.max(30)
 		.required()
 		.messages({
 			"string.pattern.base":
@@ -540,7 +533,6 @@ export const getAttendancePDF = async (req, res) => {
 			"Content-Disposition",
 			`attachment; filename=${filename}.pdf`
 		);
-		res.setHeader('hi','ho')
 		res.status(200).send(pdfBuffer);
 	} catch (err) {
 		console.log(err)
