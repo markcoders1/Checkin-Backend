@@ -268,67 +268,67 @@ export const resetPassword = async (req, res) => {
 	}
 };
 
-// const changePasswordJoi = Joi.object({
-// 	oldPassword: Joi.string()
-// 		.pattern(
-// 			new RegExp(
-// 				"^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{6,30}$"
-// 			)
-// 		)
-// 		.required()
-// 		.messages({
-// 			"string.pattern.base":
-// 				"oldPassword must be between 6 and 30 characters long, and include at least one uppercase letter, one lowercase letter, one number, and one special character.",
-// 			"any.required": "Password is required.",
-// 		}),
-// 	newPassword: Joi.string()
-// 		.pattern(
-// 			new RegExp(
-// 				"^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{6,30}$"
-// 			)
-// 		)
-// 		.required()
-// 		.messages({
-// 			"string.pattern.base":
-// 				"newPassword must be between 6 and 30 characters long, and include at least one uppercase letter, one lowercase letter, one number, and one special character.",
-// 			"any.required": "Password is required.",
-// 		}),
-// });
+const changePasswordJoi = Joi.object({
+	oldPassword: Joi.string()
+		.pattern(
+			new RegExp(
+				"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$"
+			)
+		)
+		.required()
+		.messages({
+			"string.pattern.base":
+				"oldPassword must be between 6 and 30 characters long, and include at least one uppercase letter, one lowercase letter, one number, and one special character.",
+			"any.required": "Password is required.",
+		}),
+	newPassword: Joi.string()
+		.pattern(
+			new RegExp(
+				"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$"
+			)
+		)
+		.required()
+		.messages({
+			"string.pattern.base":
+				"newPassword must be between 6 and 30 characters long, and include at least one uppercase letter, one lowercase letter, one number, and one special character.",
+			"any.required": "Password is required.",
+		}),
+});
 
-// export const changeCurrentPassword = async (req, res) => {
-// 	try {
-// 		const { oldPassword, newPassword } = req.body;
-// 		if (!oldPassword || !newPassword) {
-// 			return res.status(400).json({ message: "incomplete data" });
-// 		}
-// 		///Joi oldPassword and newPassword check
-// 		const { error } = changePasswordJoi.validate(req.body);
-// 		if (error) {
-// 			console.log(error);
-// 			return res.status(400).json({ message: error.details });
-// 		}
+export const changeCurrentPassword = async (req, res) => {
+	try {
+		const { oldPassword, newPassword } = req.body;
+		if (!oldPassword || !newPassword) {
+			return res.status(400).json({ message: "incomplete data" });
+		}
+		///Joi oldPassword and newPassword check
+		const { error } = changePasswordJoi.validate(req.body);
+		if (error) {
+			console.log(error);
+			return res.status(400).json({ message: error.details });
+		}
 
-// 		const user = await User.findById(req.user?._id);
+		const user = await User.findById(req.user?._id);
 
-// 		const isPasswordCorrect = await user.isPasswordCorrect(oldPassword);
-// 		if (!isPasswordCorrect) {
-// 			return res
-// 				.status(400)
-// 				.json({ message: "oldPassword is incorrect" });
-// 		}
-// 		user.password = newPassword;
+		const isPasswordCorrect = await user.isPasswordCorrect(oldPassword);
+		if (!isPasswordCorrect) {
+			return res
+				.status(400)
+				.json({ message: "oldPassword is incorrect" });
+		}
+		user.password = newPassword;
 
-// 		await user.save({ validateBeforeSave: false });
-// 		return res
-// 			.status(200)
-// 			.json({ message: "password changed successfully" });
-// 	} catch (error) {
-// 		res.status().json({
-// 			message: "Server Error: could not change password",
-// 			error: error.message,
-// 		});
-// 	}
-// };
+		await user.save({ validateBeforeSave: false });
+		return res
+			.status(200)
+			.json({ message: "password changed successfully" });
+	} catch (error) {
+		res.status().json({
+			message: "Server Error: could not change password",
+			error: error.message,
+		});
+	}
+};
 
 export const getUser = async (req, res) => {
 	try {
