@@ -275,6 +275,8 @@ const changePasswordJoi = Joi.object({
 				"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$"
 			)
 		)
+		.min(6)
+		.max(30)
 		.required()
 		.messages({
 			"string.pattern.base":
@@ -287,6 +289,8 @@ const changePasswordJoi = Joi.object({
 				"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$"
 			)
 		)
+		.min(6)
+		.max(30)
 		.required()
 		.messages({
 			"string.pattern.base":
