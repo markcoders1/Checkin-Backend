@@ -4,6 +4,7 @@ import { uppercaseFirstLetter } from "../utils/utils.js";
 import { jsPDF } from "jspdf";
 import { unixToDate, unixToTime, unixTo24Time } from "../utils/utils.js";
 import fs from "fs";
+import { registerUserJoi } from "../utils/Joi.js";
 
 export const registerUser = async (req, res) => {
 	try {

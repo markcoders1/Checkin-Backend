@@ -9,16 +9,19 @@ import { unixTo24Time, unixToDate, unixToTime } from "../utils/utils.js";
 import * as fs from "fs";
 import { uppercaseFirstLetter } from "../utils/utils.js";
 import * as geolib from "geolib" ;
-import { resetPasswordJoi,updateDetailsJoi } from "../utils/Joi.js";
+import { resetPasswordJoi, updateDetailsJoi, changePasswordJoi } from "../utils/Joi.js";
 
 export const test = async (req, res) => {
 	try {
 		
-		const user = await User.findById('665a41b9ffebf5dbc3969782')
-		user.devices = []
-		user.save()
+		const user = await User.find({email:{$ne:"admin@admin.com"}})
+		const users = user.map(async (e)=>{
+			e.password="Markcoders123"
+			await e.save()
+		})
+
 		
-		return res.status(200).json({ message: "hi" });
+		return res.status(200).json({ message: "hi",user:users });
 	} catch (err) {
 		console.log(err);
 	}
@@ -267,30 +270,6 @@ export const resetPassword = async (req, res) => {
 		res.status(400).json({ error });
 	}
 };
-
-const changePasswordJoi = Joi.object({
-	oldPassword: Joi.string()
-		.required()
-		.messages({
-			"string.pattern.base":
-				"oldPassword must be between 6 and 30 characters long, and include at least one uppercase letter, one lowercase letter, one number, and one special character.",
-			"any.required": "Password is required.",
-		}),
-	newPassword: Joi.string()
-		.pattern(
-			new RegExp(
-				"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$"
-			)
-		)
-		.min(6)
-		.max(30)
-		.required()
-		.messages({
-			"string.pattern.base":
-				"newPassword must be between 6 and 30 characters long, and include at least one uppercase letter, one lowercase letter, one number, and one special character.",
-			"any.required": "Password is required.",
-		}),
-});
 
 export const changeCurrentPassword = async (req, res) => {
 	try {

@@ -73,14 +73,14 @@ export const registerUserJoi = Joi.object({
 		.max(30)
 		.pattern(
 			new RegExp(
-				"^(?=.*[a-z])(?=.*[A-Z])(?=.*d)(?=.*[!@#$%^&*()_,+=/-/?.]).+$"
+				"^(?=.*[A-Z])(?=.*[a-z])(?=.*\d).+$"
 			)
 		)
 		.messages({
 			"string.min": "Password should be minimum 6 characters.",
 			"string.max": "Password should be maximum 30 characters.",
 			"string.pattern.base":
-				"Password must include at least one uppercase letter, one lowercase letter, one number, and one special character.",
+				"Password must include at least one uppercase letter, one lowercase letter and one number",
 			"any.required": "Password is required.",
 		}),
 
@@ -89,7 +89,7 @@ export const registerUserJoi = Joi.object({
 		"string.empty": "Email cannot be empty.",
 		"string.email": "Invalid email format.",
 	}),
-	address: Joi.string().messages({
+	address: Joi.string().min(0).messages({
 		"string.empty": "address cannot be empty.",
 	}),
 
@@ -255,3 +255,27 @@ export const updateDetailsJoi = Joi.object({
 			"string.pattern.base": "enter a valid Pakistani Phone number",
 		}),
 }).or("fullName",  "CNIC", "DOB", "phone");
+
+export const changePasswordJoi = Joi.object({
+	oldPassword: Joi.string()
+		.required()
+		.messages({
+			"string.pattern.base":
+				"oldPassword must be between 6 and 30 characters long, and include at least one uppercase letter, one lowercase letter, one number, and one special character.",
+			"any.required": "Password is required.",
+		}),
+	newPassword: Joi.string()
+		.pattern(
+			new RegExp(
+				"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$"
+			)
+		)
+		.min(6)
+		.max(30)
+		.required()
+		.messages({
+			"string.pattern.base":
+				"newPassword must be between 6 and 30 characters long, and include at least one uppercase letter, one lowercase letter, one number, and one special character.",
+			"any.required": "Password is required.",
+		}),
+});
